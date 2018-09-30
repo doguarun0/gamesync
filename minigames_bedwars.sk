@@ -1,0 +1,1417 @@
+﻿on load:
+	#
+	set {minigamesapi::game} to "BEDWARS"
+	set {minigamesapi::game_version} to "v026"
+	#
+	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
+	set {SW::SC_Header} to "&c&lMINECROWD"
+	set {SW::Starting_Cooldown} to 10
+	set {SW::Upgrade-Timer} to 300
+	{SW::Bungee_Arena} is not set:
+		set {SW::Bungee_Arena} to "*"
+	{SW::Bungee_Lobby} is not set:
+		set {SW::Bungee_Lobby} to "Lobby"
+	set {SW::Bungee_Mode} to "true"
+	set {SW::Schematics} to "true"
+	set {SW::Map_Regen_Type} to "Schematic"
+	set {SW::GameMinutes} to 25
+	#
+function upgradeAPI(Arena: text):
+	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
+	set {_Tier} to checkFileSKY("Datas.Upgrade-Tier", "arenas/%{_Arena}%") parsed as number
+	set {_Beds::*} to configuration section "Datas.Bed" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	set {_tip.Diamond::*} to configuration section "Datas.Diamond" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	set {_tip.Emerald::*} to configuration section "Datas.Emerald" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	loop size of {_tip.Diamond::*} times:
+		set {_x} to checkFileSKY("Datas.Diamond.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
+		set {_y} to checkFileSKY("Datas.Diamond.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
+		set {_z} to checkFileSKY("Datas.Diamond.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
+		set {_w} to checkFileSKY("Datas.Diamond.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
+		set {_Location.Diamond::%loop-number%} to location ({_x}, {_y}+4, {_z}) in world {_w}  
+		create holo object "%{SW::Messages::Type_Diamond}%" with id "%{_Arena}%_Diamond-%loop-number%" at {_Location.Diamond::%loop-number%}
+	loop size of {_tip.Emerald::*} times:
+		set {_x} to checkFileSKY("Datas.Emerald.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
+		set {_y} to checkFileSKY("Datas.Emerald.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
+		set {_z} to checkFileSKY("Datas.Emerald.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
+		set {_w} to checkFileSKY("Datas.Emerald.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
+		set {_Location.Emerald::%loop-number%} to location ({_x}, {_y}+4, {_z}) in world {_w}  
+		create holo object "%{SW::Messages::Type_Emerald}%" with id "%{_Arena}%_Emerald-%loop-number%" at {_Location.Emerald::%loop-number%}
+	wait 3 ticks
+	set {_UpgradeSeconds} to checkFileSKY("Datas.Upgrade-Timer", "arenas/%{_Arena}%") parsed as number
+	while 1 is 1:
+		if checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2":
+			if {_UpgradeSeconds} is greater than 0:
+				remove 1 from {_UpgradeSeconds}
+				writeFileSKY("Datas.Upgrade-Timer", "%{_UpgradeSeconds}%", "arenas/%{_Arena}%")	
+			else:
+				Set {_Tier} to checkFileSKY("Datas.Upgrade-Tier", "arenas/%{_Arena}%") parsed as number		
+				add 1 to {_Tier}
+				if {_Tier} is 1 or 2 or 3:
+					loop size of {_tip.Diamond::*} times:	
+						holo object "%{_Arena}%_Diamond-%loop-number%" exists:
+							edit holo object "%{_Arena}%_Diamond-%loop-number%" line 4 to "%{SW::Messages::Tier_Text}%%{SW::Messages::Text_Roman_%{_Tier}%}%"	
+					loop size of {_tip.Emerald::*} times:
+						holo object "%{_Arena}%_Emerald-%loop-number%" exists:
+							edit holo object "%{_Arena}%_Emerald-%loop-number%" line 4 to "%{SW::Messages::Tier_Text}%%{SW::Messages::Text_Roman_%{_Tier}%}%"	
+				else if {_Tier} is 4:
+					loop size of {_Beds::*} times:
+						set {_x} to checkFileSKY("Datas.Bed.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
+						set {_y} to checkFileSKY("Datas.Bed.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
+						set {_z} to checkFileSKY("Datas.Bed.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
+						set {_w} to checkFileSKY("Datas.Bed.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
+						writeFileSKY("Datas.Temp-Bed-Locations.%loop-number%.x", "%{_x}%", "arenas/%{_Arena}%")
+						writeFileSKY("Datas.Temp-Bed-Locations.%loop-number%.y", "%{_y}%", "arenas/%{_Arena}%")	
+						writeFileSKY("Datas.Temp-Bed-Locations.%loop-number%.z", "%{_z}%", "arenas/%{_Arena}%")	
+						writeFileSKY("Datas.Temp-Bed-Locations.%loop-number%.world", "%{_w}%", "arenas/%{_Arena}%")	
+						set {_Location::%loop-number%} to location ({_x}, {_y}, {_z}) in world {_w}  
+						"%type of block at block north {_Location::%loop-number%}%" is "bed_block":
+							set block at block north {_Location::%loop-number%} to air
+						"%type of block at block south {_Location::%loop-number%}%" is "bed_block":
+							set block at block south {_Location::%loop-number%} to air
+						"%type of block at block west {_Location::%loop-number%}%" is "bed_block":
+							set block at block west {_Location::%loop-number%} to air
+						"%type of block at block east {_Location::%loop-number%}%" is "bed_block":
+							set block at block east {_Location::%loop-number%} to air
+						set block at {_Location::%loop-number%} to air
+						writeFileSKY("Datas.Team-Status.%loop-number%", "false", "arenas/%{_Arena}%")
+				writeFileSKY("Datas.Upgrade-Tier", "%{_Tier}%", "arenas/%{_Arena}%")	
+				{_Tier} is greater or equal to 4: 
+					stop
+				writeFileSKY("Datas.Upgrade-Timer", "%{SW::Upgrade-Timer}%", "arenas/%{_Arena}%")
+				set {_UpgradeSeconds} to {SW::Upgrade-Timer}
+			wait 1 second
+		else:
+			stop	
+function dropMiddle(Arena: text, Type: text):
+	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
+	set {_Spot::*} to configuration section "Datas.%{_Type}%" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	set {_UpgradeSeconds} to checkFileSKY("Datas.Drop-Timings.%{_Type}%", "arenas/%{_Arena}%") parsed as number
+	set {_tip::*} to configuration section "Datas.Diamond" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	while 1 is 1:
+		if checkFileSKY("Datas.Status", "arenas/%{_Arena}%")  is "2":
+			set {_Tier} to checkFileSKY("Datas.Upgrade-Tier", "arenas/%{_Arena}%")
+			if {_UpgradeSeconds} is greater than 0:
+				remove 1 from {_UpgradeSeconds}
+				writeFileSKY("Datas.Drop-Timings.%{_Type}%", "%{_UpgradeSeconds}%", "arenas/%{_Arena}%")	
+				#if {_UpgradeSeconds} is greater than 60:
+				#	set {_dk2} to rounded down {_UpgradeSeconds}/60
+				#	set {_mid2} to {_dk2}*60
+				#	set {_sn2} to {_UpgradeSeconds}-{_mid2}
+				#	{_sn2} is less than 10:
+				#		set {_sn2} to "0%{_sn2}%"
+				#	{_dk2} is less than 10:
+				#		set {_dk2} to "0%{_dk2}%"
+				#	set {_utime} to "%{_dk2}%:%{_sn2}%"
+				#else:
+				set {_utime} to "%{_UpgradeSeconds}%"
+				loop size of {_tip::*} times:
+					holo object "%{_Arena}%_%{_Type}%-%loop-number%" exists:
+						edit holo object "%{_Arena}%_%{_Type}%-%loop-number%" line 5 to "%{SW::Messages::Spawns_In}%%{_utime}%"		
+			else:		
+				loop size of {_Spot::*} times:
+					set {_x} to checkFileSKY("Datas.%{_Type}%.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
+					set {_y} to checkFileSKY("Datas.%{_Type}%.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
+					set {_z} to checkFileSKY("Datas.%{_Type}%.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
+					set {_w} to checkFileSKY("Datas.%{_Type}%.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
+					set {_Location::%loop-number%} to location ({_x}, {_y}, {_z}) in world {_w}  
+					drop {SW::Messages::Middle_Item_%{_Type}%} at block 1 above block 1 forward {_Location::%loop-number%} without velocity
+				writeFileSKY("Datas.Drop-Timings.%{_type}%", "%{SW::Messages::Tier_%{_Tier}%_%{_Type}%}%", "arenas/%{_Arena}%")	
+				set {_UpgradeSeconds} to {SW::Messages::Tier_%{_Tier}%_%{_Type}%}	
+			wait 1 seconds
+		else:
+			stop
+	stop
+function dropIngots(Arena: text, Spot: number, Type: number):
+	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
+	while 1 is 1:
+		if checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2":
+			set {_Dropper} to checkFileSKY("Datas.Dropper-Tiers.%{_Spot}%", "arenas/%{_Arena}%")
+			set {_x} to checkFileSKY("Datas.Item.%{_Spot}%.x", "maps/%{_CurrentMap}%") parsed as number
+			set {_y} to checkFileSKY("Datas.Item.%{_Spot}%.y", "maps/%{_CurrentMap}%") parsed as number
+			set {_z} to checkFileSKY("Datas.Item.%{_Spot}%.z", "maps/%{_CurrentMap}%") parsed as number
+			set {_w} to checkFileSKY("Datas.Item.%{_Spot}%.world", "maps/%{_CurrentMap}%") parsed as world
+			set {_Location::%{_Spot}%} to location ({_x}, {_y}, {_z}) in world {_w}  
+			drop {SW::Messages::Item_%{_Type}%} at block 1 above {_Location::%{_Spot}%} without velocity
+			wait {SW::Messages::Dropper_Item_Timings_%{_Type}%_Tier_%{_Dropper}%}
+		else:
+			stop
+	stop
+function bedAPI(Arena: text):
+	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
+	loop all villagers:
+		kill loop-entity
+	set {_Beds::*} to configuration section "Datas.Bed" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	loop size of {_Beds::*} times:
+		set {_x} to checkFileSKY("Datas.Bed.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
+		set {_y} to checkFileSKY("Datas.Bed.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
+		set {_z} to checkFileSKY("Datas.Bed.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
+		set {_w} to checkFileSKY("Datas.Bed.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
+		writeFileSKY("Datas.Temp-Bed-Locations.%loop-number%.x", "%{_x}%", "arenas/%{_Arena}%")
+		writeFileSKY("Datas.Temp-Bed-Locations.%loop-number%.y", "%{_y}%", "arenas/%{_Arena}%")	
+		writeFileSKY("Datas.Temp-Bed-Locations.%loop-number%.z", "%{_z}%", "arenas/%{_Arena}%")	
+		writeFileSKY("Datas.Temp-Bed-Locations.%loop-number%.world", "%{_w}%", "arenas/%{_Arena}%")	
+		set {_Location::%loop-number%} to location ({_x}, {_y}, {_z}) in world {_w}  
+		set block at block north {_Location::%loop-number%} to air
+		set block at block south {_Location::%loop-number%} to air
+		set block at block west {_Location::%loop-number%} to air
+		set block at block east {_Location::%loop-number%} to air
+		set block at {_Location::%loop-number%} to air
+		wait 1 ticks
+		set block at {_Location::%loop-number%} to bed_block:8  
+	set {_ItemShop::*} to configuration section "Datas.ItemShop" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	loop size of {_ItemShop::*} times:
+		set {_x} to checkFileSKY("Datas.ItemShop.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
+		set {_y} to checkFileSKY("Datas.ItemShop.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
+		set {_z} to checkFileSKY("Datas.ItemShop.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
+		set {_w} to checkFileSKY("Datas.ItemShop.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
+		set {_Location::%loop-number%} to location ({_x}, {_y}, {_z}) in world {_w}  
+		spawn 1 adult villager at {_Location::%loop-number%}
+		add "{Profession:1}" to nbt of last spawned villager
+		add "{Offers:{}}" to nbt of last spawned villager
+		#add "{NoAI:1}" to nbt of spawned villager
+		#add "{Profession:2,Offers:{},NoAI:1}" to nbt of spawned villager
+		set display name of last spawned villager to "%{SW::Messages::Item_Shop_NPC}%"
+	set {_Upgrades::*} to configuration section "Datas.Upgrade" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	loop size of {_Upgrades::*} times:
+		set {_x} to checkFileSKY("Datas.Upgrade.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
+		set {_y} to checkFileSKY("Datas.Upgrade.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
+		set {_z} to checkFileSKY("Datas.Upgrade.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
+		set {_w} to checkFileSKY("Datas.Upgrade.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
+		set {_Location::%loop-number%} to location ({_x}, {_y}, {_z}) in world {_w}  
+		spawn 1 adult villager at {_Location::%loop-number%}
+		add "{Profession:2}" to nbt of last spawned villager
+		add "{Offers:{}}" to nbt of last spawned villager
+		#add "{NoAI:1}" to nbt of spawned villager
+		set display name of last spawned villager to "%{SW::Messages::Upgrade}%"
+	set {_Item::*} to configuration section "Datas.Item" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	loop size of {_Item::*} times:
+		#set {_x} to checkFileSKY("Datas.Item.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
+		#set {_y} to checkFileSKY("Datas.Item.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
+		#set {_z} to checkFileSKY("Datas.Item.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
+		#set {_w} to checkFileSKY("Datas.Item.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
+		#set {_Location::%loop-number%} to location ({_x}, {_y}, {_z}) in world {_w}  
+		writeFileSKY("Datas.Dropper-Tiers.%loop-number%", "0", "arenas/%{_Arena}%")
+	set {_tip.Diamond::*} to configuration section "Datas.Diamond" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	set {_tip.Emerald::*} to configuration section "Datas.Emerald" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
+	loop size of {_tip.Diamond::*} times:
+		holo object "%{_Arena}%_Diamond-%loop-number%" exists:
+			delete holo object "%{_Arena}%_Diamond-%loop-number%"
+	loop size of {_tip.Emerald::*} times:
+		holo object "%{_Arena}%_Emerald-%loop-number%" exists:
+			delete holo object "%{_Arena}%_Emerald-%loop-number%"
+function inventoryAPI(Player: player, no: number):
+	set {_UUID} to "%uuid of {_Player}%"
+	set level of {_Player} to 0
+	set {_Arena} to checkFileSKY("Players.%{_UUID}%.Arena-Name", "playerdata")
+	set {_Team} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%")
+	clear {_Player}'s inventory
+	set {_Helmet} to checkFileSKY("Datas.Players-List.%{_UUID}%.Helmet", "arenas/%{_Arena}%")	
+	if {_Helmet} is not "*":
+		set {_Player}'s helmet to {SW::Messages::ItemShop_Type_1_Item::%{_Helmet}%}
+	else:
+		set {_Player}'s helmet to leather helmet
+		dye {_Player}'s helmet {SW::Messages::Team_%{_no}%_Color}
+	set {_Chestplate} to checkFileSKY("Datas.Players-List.%{_UUID}%.Chestplate", "arenas/%{_Arena}%")	
+	if {_Chestplate} is not "*":
+		set {_Player}'s chestplate to {SW::Messages::ItemShop_Type_1_Item::%{_Chestplate}%}
+	else:
+		set {_Player}'s chestplate to leather chestplate
+		dye {_Player}'s chestplate {SW::Messages::Team_%{_no}%_Color}	
+	set {_Leggings} to checkFileSKY("Datas.Players-List.%{_UUID}%.Leggings", "arenas/%{_Arena}%")	
+	if {_Leggings} is not "*":
+		if {_Leggings} is "chain":
+			set {_Player}'s leggings to chain leggings
+		else if {_Leggings} is "iron":
+			set {_Player}'s leggings to iron leggings
+		else if {_Leggings} is "diamond":
+			set {_Player}'s leggings to diamond leggings
+	else:
+		set {_Player}'s leggings to leather leggings
+		dye {_Player}'s leggings {SW::Messages::Team_%{_no}%_Color}	
+	set {_Boots} to checkFileSKY("Datas.Players-List.%{_UUID}%.Boots", "arenas/%{_Arena}%")	
+	if {_Boots} is not "*":
+		set {_Player}'s boots to {SW::Messages::ItemShop_Type_1_Item::%{_Boots}%}
+	else:
+		set {_Player}'s boots to leather boots
+		dye {_Player}'s boots {SW::Messages::Team_%{_no}%_Color}
+	set {_Sword} to checkFileSKY("Datas.Players-List.%{_UUID}%.Sword", "arenas/%{_Arena}%")	
+	if {_Sword} is not "*":
+		set slot 0 of {_Player}'s inventory to {SW::Messages::ItemShop_Type_1_Item::%{_Sword}%}
+	else:
+		set slot 0 of {_Player}'s inventory to wood sword
+	loop 4 times:	
+		clear {_Tier}
+		set {_Tier} to checkFileSKY("Datas.Upgrades-Tier.%{_Team}%.%loop-number%", "arenas/%{_Arena}%") parsed as number
+		{_Tier} is greater than 0
+		if loop-number is 1:
+			apply potion of strength of tier 1 to {_Player} for 999 minutes
+		else if loop-number is 2:
+			apply potion of resistance of tier {_Tier} to {_Player} for 999 minutes
+		else if loop-number is 3:
+			apply potion of haste of tier {_Tier} to {_Player} for 999 minutes
+		else if loop-number is 4:
+			apply potion of regeneration of tier {_Tier} to {_Player} for 999 minutes	
+	checkFileSKY("Datas.Features.%{_Team}%.5", "arenas/%{_Arena}%") is "true":
+		checkFileSKY("Datas.Used-Features.%{_Team}%.5", "arenas/%{_Arena}%") is "*"	
+		set {_lang} to language of {_Player}
+		set slot 0 of {_Player}'s inventory to eye of ender named "%{SW::Messages::%{_lang}%::Features_FeatureItems_5_Name}%" with lore "%{SW::Messages::%{_lang}%::Features_FeatureItems_5_Lore}%"
+function scoreboardAPI(Player: player):
+	set {_lang} to language of {_Player}
+	set {_UUID} to "%uuid of {_Player}%"
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
+	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
+	set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
+	set {_Mode} to checkFileSKY("Datas.Type", "arenas/%{_Arena}%")
+	set {_Team} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%")
+	set {_Day} to "%day%/%month%/%year%"
+	
+	add "&1" and "&2" and "&3" and "&4" and "&5" and "&6" and "&7" and "&8" and "&9" and "&a" and "&b" and "&c" and "&d" and "&e" and "&f" to {_c::*}
+	
+	set {_calc.8} to 15
+	set {_calc.7} to 14
+	set {_calc.6} to 13
+	set {_calc.5} to 12
+	set {_calc.4} to 11
+	set {_calc.3} to 10
+	set {_calc.2} to 9
+	set {_calc.1} to 8
+	set {_calc} to {_calc.%{_Maximum}%}
+				
+	setup skoreboard for {_Player}
+	{_Player} has a skoreboard
+	wait 1 ticks
+	set title of skoreboard {_Player} to "%{SW::SC_Header}%"
+	wait 1 ticks
+	reset slots numbers between 1 and {_calc} of skoreboard {_Player}
+	
+	while {_Player} is online:
+		set {_control} to false
+		checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%") is not "*":		
+			set {_control} to 1
+		checkFileSKY("Players.%{_UUID}%.Spectator", "playerdata") is "true":
+			set {_control} to 2
+		if {_control} is 1 or 2:	
+			set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/BEDWARS/arenas/%{_Arena}%.yml"
+			set {_x} to checkFileSKY("Datas.Current-Time", "arenas/%{_Arena}%") parsed as integer
+			set {_z} to checkFileSKY("Datas.Upgrade-Timer", "arenas/%{_Arena}%") parsed as integer
+			set {_Tier} to checkFileSKY("Datas.Upgrade-Tier", "arenas/%{_Arena}%") parsed as number
+			{_x} is not set:
+				set {_x} to 0
+			if {_x} is greater than 60:
+				set {_dk} to rounded down {_x}/60
+				set {_mid} to {_dk}*60
+				set {_sn} to {_x}-{_mid}
+				{_sn} is less than 10:
+					set {_sn} to "0%{_sn}%"
+				{_dk} is less than 10:
+					set {_dk} to "0%{_dk}%"
+				set {_time} to "%{_dk}%:%{_sn}%"
+			else:
+				set {_time} to "%{_x}%"	
+			set {_utime} to ""
+			{_Tier} is not 4:
+				{_z} is not set:
+					set {_z} to 0
+				if {_z} is greater than 60:
+					set {_dk2} to rounded down {_z}/60
+					set {_mid2} to {_dk2}*60
+					set {_sn2} to {_z}-{_mid2}
+					{_sn2} is less than 10:
+						set {_sn2} to "0%{_sn2}%"
+					{_dk2} is less than 10:
+						set {_dk2} to "0%{_dk2}%"
+					set {_utime} to " (%{_dk2}%:%{_sn2}%)"
+				else:
+					set {_utime} to " (%{_z}%)"	
+			set {_y} to 8
+			loop {_Maximum} times:
+				set {_you} to ""
+				set {_statusText} to "&a✔"
+				set {_TeamStatus} to checkFileSKY("Datas.Team-Status.%loop-number%", "arenas/%{_Arena}%")
+				{_TeamStatus} is "false":
+					set {_statusText} to "&c✘"
+				{_Team} is "%loop-number%":
+					set {_you} to "%{SW::Messages::%{_lang}%::Text_You}%"
+				set {_text.%{_y}%} to "%{SW::Messages::%{_lang}%::Team_%loop-number%_KisaltName}% &f%uncolored {SW::Messages::%{_lang}%::Team_%loop-number%_Name}%: %{_statusText}%%{_you}%"
+				add 1 to {_y}
+			set {_text.1} to "&7%{_Mode}% &8%{_Day}%"
+			set {_text.3} to "%{SW::Messages::%{_lang}%::SC_InGame_Map}%&e%{_CurrentMap}%"
+			set {_text.4} to "%{SW::Messages::%{_lang}%::SC_InGame_Time}%&e%{_time}%"
+			set {_text.5} to "%{SW::Messages::%{_lang}%::SC_InGame_Players}%&e%size of {_PlayerList::*}%/%{_Maximum}%"
+			set {_text.6} to "%{SW::Messages::%{_lang}%::SC_InGame_Upgrades}%&e%{SW::Messages::%{_lang}%::Bed_Event_Tier_%{_Tier}%}%%{_utime}%"
+			loop {_calc} times:
+				{_text.%loop-number%} is not set:
+					set {_text.%loop-number%} to "%{_c::%loop-number%}%"
+				set slot loop-number of skoreboard {_Player} to {_text.%loop-number%}
+			wait 20 ticks
+		else:
+			delete skoreboard for {_Player}
+			stop
+function debugArena(Arena: text, Type: text): 
+	set {_causes::*} to checkArena("%{_Arena}%") split at ";"
+	set {_Status} to checkFileSKY("Datas.Status", "arenas/%{_Arena}%")
+	{_Status} is "3" or "*":
+		stop
+	writeFileSKY("Datas.Status", "3", "arenas/%{_Arena}%")	
+	writeFileSKY("Datas.Current-Time", "*", "arenas/%{_Arena}%")
+	set {_Mode} to checkFileSKY("Datas.Type", "arenas/%{_Arena}%")
+	set {_Bungee} to "true"
+	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
+	#{_Bungee} is "true":
+		#writeFileSKY("Datas.Current-Map", "*", "arenas/%{_Arena}%")
+	set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+	size of {_PlayerList::*} > 0:
+		loop {_PlayerList::*}:
+			set {_Player::%loop-value%} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+			set {_Kills::%loop-value%} to a value "Datas.Players-List.%loop-value%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+	wait 1 ticks
+	set {_rcp} to ""
+	set {_RecentPlayers::*} to  configuration section "Datas.All-Joined" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+	loop {_RecentPlayers::*}:
+		clear {_plr}
+		set {_plr} to a value "Datas.All-Joined.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+		{_rcp} is not "":
+			set {_plr} to ";%{_plr}%"
+		set {_rcp} to "%{_rcp}%%{_plr}%"
+	wait 1 ticks
+	set {_SpectatorList::*} to configuration section "Datas.Spectator-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+	size of {_SpectatorList::*} > 0:
+		loop {_SpectatorList::*}:
+			set {_Spectator::%loop-value%} to a value "Datas.Spectator-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+		loop {_Spectator::*}:
+			clear {_Spec}
+			set {_Spec} to "%loop-value%" parsed as player
+			add {_Spec} to {_BungeeList::*}
+			specAPI({_Spec}, "%{_Arena}%", true)
+			remove {_Spec} from {_Spectator::*}
+	wait 3 ticks
+	veriCikarSKY("Datas", "Players-List", "arenas/%{_Arena}%")
+	wait 1 ticks
+	veriCikarSKY("Datas", "All-Joined", "arenas/%{_Arena}%")
+	veriCikarSKY("Datas", "Spectator-List", "arenas/%{_Arena}%")
+	veriCikarSKY("Datas", "Blocks", "arenas/%{_Arena}%")	
+	veriCikarSKY("Datas", "Team-Status", "arenas/%{_Arena}%")
+	veriCikarSKY("Datas", "Temp-Bed-Locations", "arenas/%{_Arena}%")
+	veriCikarSKY("Datas", "Features", "arenas/%{_Arena}%")
+	veriCikarSKY("Datas", "Used-Features", "arenas/%{_Arena}%")
+	veriCikarSKY("Datas", "Upgrades-Tier", "arenas/%{_Arena}%")
+	size of {_Player::*} > 0:
+		set {_x} to checkFileSKY("Datas.Lobby.x", "maps/%{_CurrentMap}%") parsed as number
+		set {_y} to checkFileSKY("Datas.Lobby.y", "maps/%{_CurrentMap}%") parsed as number
+		set {_z} to checkFileSKY("Datas.Lobby.z", "maps/%{_CurrentMap}%") parsed as number
+		set {_w} to checkFileSKY("Datas.Lobby.world", "maps/%{_CurrentMap}%") parsed as world
+		set {_Lobby} to location of block at location ({_x}, {_y}, {_z}) in world {_w}
+		loop {_Player::*}:
+			delete {_Player}
+			set {_Player} to "%loop-value%" parsed as player
+			add {_Player} to {_BungeeList::*}
+			set {_UUID} to "%loop-index%"
+			if {_Bungee} is not "true":
+				clear {_Player}'s inventory
+				wait 3 ticks
+				writeFileSKY("Players.Arena-Name", "*", "playerdata/%{_UUID}%")
+				writeFileSKY("Players.Spectator", "*", "playerdata/%{_UUID}%")		
+			else:
+				delete file "plugins/%{minigamesapi::game}%/playerdata/%{_UUID}%.yml"
+			set {_Player}'s health to 20
+			set {_Player}'s hunger to 20
+			clear {_Player}'s inventory
+			set level of {_Player} to 0
+			teleport {_Player} to {_Lobby}	
+			set {_rcp.%{_Player}%} to {_rcp}
+			replace all "-%{_Player}%" and "%{_Player}%" with "" in {_rcp.%{_Player}%}
+			saveRecentPlayers({_Player}, {_rcp.%{_Player}%})
+			{_Mode} is not "Solo":
+				removePartySKY({_Player}, {_Arena})
+	{_Type} is not "win":
+		sendTitleArena("%{_Arena}%", "Title_GameFinished", "*", "Restart_Kick", "*")
+		broadcastServer("Game_Debug_Broadcast", "{ARENA}^%{_Arena}%", true)		
+	{_CurrentMap} is not "*":
+		schematicAPISKY("%{_CurrentMap}%", "1")
+		bedAPI("%{_Arena}%")
+		wait 1 ticks
+	"%{_Type}%" is not "disable" or "enable" or "remove":
+		set {_causes::*} to checkArena("%{_Arena}%") split at ";"
+		"%{_causes::*}%" is "false"
+		writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")
+	wait 35 ticks
+	"%{_Type}%" is not "disable" or "enable" or "remove" or "load":
+		size of {_RecentPlayers::*} > 0
+		loop {_RecentPlayers::*}:
+			delete {_BungeeP}
+			set {_BungeeP} to "%loop-value%" parsed as player
+			{_BungeeP} is online
+			teleport {_BungeeP} to {_Lobby}
+			joinGame({_BungeeP}, "%{_Arena}%")
+			#bungeeConnector({_BungeeP}, "*", "1")
+			wait 2 ticks
+function startGame(Arena: text, Type: text):
+	set {_Status} to checkFileSKY("Datas.Status", "arenas/%{_Arena}%")
+	{_Status} is "0" or "5"
+	if {_Type} is "join":
+		set {_Cooldown} to {SW::Starting_Cooldown}
+		set {_Minimum} to checkFileSKY("Datas.Min-Players", "arenas/%{_Arena}%") parsed as number
+	else:
+		set {_Cooldown} to 10
+		set {_Minimum} to 1
+	writeFileSKY("Datas.Current-Time", "%{_Cooldown}%", "arenas/%{_Arena}%")
+	set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+	loop {_PlayerList::*}:
+		set {_Player::%loop-value%} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+	writeFileSKY("Datas.Status", "1", "arenas/%{_Arena}%")
+	set {_Bungee} to "true"	 
+	loop {_Cooldown} times:
+		delete {_PlayerList::*}
+		set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+		if size of {_PlayerList::*} is greater or equal to {_Minimum}:	
+			{_Cooldown} is 6:	
+				{_Bungee} is "true":
+					mapSelector({_Arena}, false)
+			{_Cooldown} is less than 6:
+				sendTitleArena("%{_Arena}%", "Numbers_%{_Cooldown}%", "*", "*", "*")
+			set level of players to {_Cooldown}
+			remove 1 from {_Cooldown}
+			writeFileSKY("Datas.Current-Time", "%{_Cooldown}%", "arenas/%{_Arena}%")
+			wait 1 second
+		else:
+			set level of {_Player::*} to {_Cooldown}
+			writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")
+			sendMessageArena("%{_Arena}%", "Player_Left_Starting", "*", true)	
+			stop
+	{_Cooldown} is less than 1
+	writeFileSKY("Datas.Status", "2", "arenas/%{_Arena}%")
+	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
+	set level of {_Player::*} to 0
+	writeFileSKY("Datas.Current-Time", "%{_GameTimeSc}%", "arenas/%{_Arena}%")
+	delete {_PlayerList::*}
+	delete {_Player::*}
+	set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+	loop {_PlayerList::*}:
+		set {_Player::%loop-value%} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+		writeFileSKY("Datas.All-Joined.%loop-value%.Username", "%{_Player::%loop-value%}%", "arenas/%{_Arena}%")
+	set {_Mode} to checkFileSKY("Datas.Type", "arenas/%{_Arena}%")
+	if {_Mode} is "Solo": 
+		set {_TeleportList::*} to {_Player::*}
+		
+		loop size of {_TeleportList::*} times:
+			set {_RandomPlayer::%loop-number%} to "%random element out of {_TeleportList::*}%" parsed as player
+			set {_RandomUUID::%loop-number%} to "%uuid of {_RandomPlayer::%loop-number%}%"
+			set {_x} to checkFileSKY("Datas.Spawns.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
+			set {_y} to checkFileSKY("Datas.Spawns.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
+			set {_z} to checkFileSKY("Datas.Spawns.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
+			set {_w} to checkFileSKY("Datas.Spawns.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
+			set {_Location::%loop-number%} to location of block at location ({_x}, {_y}, {_z}) in world {_w}  
+			teleport {_RandomPlayer::%loop-number%} to {_Location::%loop-number%}
+			remove {_RandomPlayer::%loop-number%} from {_TeleportList::*}
+			writeFileSKY("Datas.Players-List.%{_RandomUUID::%loop-number%}%.Team", "%loop-number%", "arenas/%{_Arena}%")
+	else:
+		set {_xcount} to 1
+		loop {_PlayerList::*}:
+			set {_Player.lv} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+			set {_lv} to "%{_Player.lv}%" parsed as player
+			set {_party.lv} to checkFileSKY("Datas.Players-List.%loop-value%.HasParty", "arenas/%{_Arena}%")
+			{_party.TP::%{_party.lv}%} is not set:
+				set {_party.TP::%{_party.lv}%} to {_xcount}
+				add 1 to {_xcount}
+			set {_x} to checkFileSKY("Datas.Spawns.%{_party.TP::%{_party.lv}%}%.x", "maps/%{_CurrentMap}%") parsed as number
+			set {_y} to checkFileSKY("Datas.Spawns.%{_party.TP::%{_party.lv}%}%.y", "maps/%{_CurrentMap}%") parsed as number
+			set {_z} to checkFileSKY("Datas.Spawns.%{_party.TP::%{_party.lv}%}%.z", "maps/%{_CurrentMap}%") parsed as number
+			set {_w} to checkFileSKY("Datas.Spawns.%{_party.TP::%{_party.lv}%}%.world", "maps/%{_CurrentMap}%") parsed as world
+			set {_Location::%{_party.TP::%{_party.lv}%}%} to location of block at location ({_x}, {_y}, {_z}) in world {_w}  
+			teleport {_lv} to {_Location::%{_party.TP::%{_party.lv}%}%}
+			writeFileSKY("Datas.Players-List.%loop-value%.Team", "%{_party.TP::%{_party.lv}%}%", "arenas/%{_Arena}%")
+			wait 1 tick
+	loop {_Player::*}:
+		clear {_Player}
+		set {_Player} to "%loop-value%" parsed as player
+		set {_UUID} to "%loop-index%"
+		set {_lang} to language of {_Player}
+		set {_no} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%") parsed as number
+		playSoundSKY({_player}, "NOTE_PLING", "NOTE_PLING", 1)
+		set {_playedGET} to getVariableSKY({_player}, "Played") parsed as number
+		add 1 to {_playedGET}
+		setVariableSKY({_player}, "Played", "%{_playedGET}%")
+		send title "%{SW::Messages::%{_lang}%::Title_Game_Started}%" with subtitle "%{SW::Messages::%{_lang}%::SubTitle_Game_Started}%" for 5 seconds to {_Player}	
+		apply potion of resistance of tier 10 to {_Player} for 6 seconds
+		set level of {_Player} to 0
+		clear {_Player}'s inventory
+		scoreboardAPI({_Player}) 
+		inventoryAPI({_Player}, {_no})
+		dropIngots("%{_Arena}%", {_no}, 0)
+		dropIngots("%{_Arena}%", {_no}, 1)
+		{_World} is not set:
+			set {_World} to world of {_Player}
+		wait 1 tick
+	execute console command "/time set 0 %{_World}%"
+	delete all dropped items in {_World}
+	writeFileSKY("Datas.Upgrade-Tier", "1", "arenas/%{_Arena}%")	
+	writeFileSKY("Datas.Upgrade-Timer", "%{SW::Upgrade-Timer}%", "arenas/%{_Arena}%")
+	set {_GameTimeMinutes} to {SW::GameMinutes}
+	set {_Seconds} to 1
+	set {_GameTime} to {_GameTimeMinutes}*60
+	upgradeAPI({_Arena})
+	dropMiddle({_Arena}, "Emerald")
+	dropMiddle({_Arena}, "Diamond")	
+	loop {_GameTime} times:
+		checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+		{_GameTimeMinutes} is greater than 0
+		writeFileSKY("Datas.Current-Time", "%{_GameTime}%", "arenas/%{_Arena}%")
+		remove 1 from {_GameTime}
+		{_Seconds} is greater or equal to 60:
+			remove 1 from {_GameTimeMinutes}
+			set {_Seconds} to 0
+		add 1 to {_Seconds}
+		wait 1 second
+	set {_Status} to checkFileSKY("Datas.Status", "arenas/%{_Arena}%")
+	{_Status} is "2"
+	sendMessageArena("%{_Arena}%", "Game_Finished_Time", "*", true)	
+	debugArena("%{_Arena}%", "time")		
+on death of player:
+	set death message to ""
+	clear drops
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of victim%")
+	{_Arena} is not "*"
+	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+	set victim's health to 20
+	set victim's hunger to 20
+	set {_lang} to language of victim
+	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
+	set {_Team} to checkFileSKY("Datas.Players-List.%uuid of victim%.Team", "arenas/%{_Arena}%")
+	set victim's gamemode to survival
+	clear victim's inventory
+	set level of victim to 0
+	specAPI(victim, "%{_Arena}%", true)
+	wait 1 ticks
+	set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
+	set {_Teams::*} to configuration section "Datas.Team-Status" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+	set {_TeamStatus} to checkFileSKY("Datas.Team-Status.%{_Team}%", "arenas/%{_Arena}%")
+	if {_TeamStatus} is not "*":
+		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Died}%" to victim	
+		veriCikarSKY("Datas.Players-List", "%uuid of victim%", "arenas/%{_Arena}%")
+		set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+	else:
+		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Died_With_Bed}%" to victim	
+	set {_a} to attacker
+	set {_deathsGET} to getVariableSKY(victim, "Deaths") parsed as number
+	add 1 to {_deathsGET}
+	setVariableSKY(victim, "Deaths", "%{_deathsGET}%")
+	set {_KillsV} to a value "Datas.Players-List.%uuid of victim%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
+	set {_ChestsV} to a value "Datas.Players-List.%uuid of victim%.Chests" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
+	set {_attackerr} to checkFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "arenas/%{_Arena}%")
+	if {_attackerr} is not "*":
+		set {_a} to {_attackerr} parsed as player
+		set {_auuid} to "%uuid of {_a}%"
+		set {_killsGET} to getVariableSKY({_a}, "Kills") parsed as number
+		add 1 to {_killsGET}
+		setVariableSKY({_a}, "Kills", "%{_killsGET}%")
+		degerEkleSKY("Datas.Players-List.%{_auuid}%.Kills", 1, "arenas/%{_Arena}%")
+		if {_TeamStatus} is not "*": 	
+			sendMessageArena("%{_Arena}%", "Death_Type_Killed_FinalKill", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+		else:
+			sendMessageArena("%{_Arena}%", "Death_Type_Killed", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+	else:
+		if {_TeamStatus} is not "*": 	
+			sendMessageArena("%{_Arena}%", "Death_Type_Died_Final_Kill", "{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+		else:
+			sendMessageArena("%{_Arena}%", "Death_Type_Died", "{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+	{_TeamStatus} is not "*": 
+		writeFileSKY("Players.Arena-Name", "*", "playerdata/%uuid of victim%")
+		writeFileSKY("Players.Spectator", "*", "playerdata/%uuid of victim%")
+	#set {_xzsize} to size of {_PlayerList::*}
+	#if {_xzsize}-1 > 0: 
+	#else:
+	#	set {_r} to random integer from 1 to {_Maximum}
+	if {_TeamStatus} is not "*": 
+		send title "%{SW::Messages::%{_lang}%::Title_Dead}%" with subtitle "%{SW::Messages::%{_lang}%::SubTitle_Dead}%" for 5 seconds to victim
+		#Recent Players
+		set {_RecentPlayers::*} to  configuration section "Datas.All-Joined" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+		set {_rcp} to ""
+		remove "%uuid of victim%" from {_RecentPlayers::*}
+		loop {_RecentPlayers::*}:
+			clear {_plr}
+			set {_plr} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+			{_rcp} is not "":
+				set {_plr} to "-%{_plr}%"
+			set {_rcp} to "%{_rcp}%%{_plr}%"
+		saveRecentPlayers(victim, {_rcp})
+		#
+	else:
+		set {_timer} to 5
+		checkFileSKY("Datas.Features.%{_Team}%.3", "arenas/%{_Arena}%") is "true":
+			set {_timer} to 3
+		loop {_timer} times:
+			if checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2":
+				set {_msg} to {SW::Messages::%{_lang}%::SubTitle_Dead_With_Bed}
+				replace all "{TIME}" with "%{_timer} - loop-number%" in {_msg}
+				send title "%{SW::Messages::%{_lang}%::Title_Dead}%" with subtitle "%{_msg}%" for 1 seconds to victim
+				wait 1.2 seconds
+			else:
+				stop
+		specAPI(victim, "%{_Arena}%", false)
+		set {_x} to checkFileSKY("Datas.Spawns.%{_Team}%.x", "maps/%{_CurrentMap}%") parsed as number
+		set {_y} to checkFileSKY("Datas.Spawns.%{_Team}%.y", "maps/%{_CurrentMap}%") parsed as number
+		set {_z} to checkFileSKY("Datas.Spawns.%{_Team}%.z", "maps/%{_CurrentMap}%") parsed as number
+		set {_w} to checkFileSKY("Datas.Spawns.%{_Team}%.world", "maps/%{_CurrentMap}%") parsed as world
+		set {_Location} to location of block at location ({_x}, {_y}, {_z}) in world {_w}  
+		send title "%{SW::Messages::%{_lang}%::You_Rev}%" with subtitle "%{SW::Messages::%{_lang}%::SubTitle_Rev}%" for 1 seconds to victim
+		set {_no} to "%{_Team}%" parsed as number
+		inventoryAPI(victim, {_no})	
+		teleport victim to {_Location}
+	set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+	{_TeamStatus} is not "*"
+	size of {_PlayerList::*} is less than 2
+	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+	winMatch({_Arena})
+	wait 5 seconds
+	writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")	
+	wait 1 ticks
+	debugArena("%{_Arena}%", "win")
+on break:
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of player%")
+	if {_Arena} is not "*":
+		if checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "0" or "1":
+			player has permission "minigameapi.admin":
+				stop
+			cancel event
+			set {_lang} to language of player
+			send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::No_Action_Lobby}%" to player
+		else if "%type of event-block%" is "bed_block":
+			wait 1 tick
+			cancel event
+			set {_itemm} to "bed_block:8" parsed as material
+			set {_lang} to language of player
+			set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
+			set {_team} to checkFileSKY("Datas.Players-List.%uuid of player%.Team", "arenas/%{_Arena}%")
+			set {_x} to checkFileSKY("Datas.Temp-Bed-Locations.%{_team}%.x", "arenas/%{_Arena}%") parsed as number
+			set {_y} to checkFileSKY("Datas.Temp-Bed-Locations.%{_team}%.y", "arenas/%{_Arena}%") parsed as number
+			set {_z} to checkFileSKY("Datas.Temp-Bed-Locations.%{_team}%.z", "arenas/%{_Arena}%") parsed as number
+			set {_w} to checkFileSKY("Datas.Temp-Bed-Locations.%{_team}%.world", "arenas/%{_Arena}%") parsed as world
+			set {_Location} to location ({_x}, {_y}, {_z}) in world {_w}  
+			if distance between location of event-block and {_Location} is less than 5:
+				
+				if checkFileSKY("Datas.Features.%{_team}%.1", "arenas/%{_Arena}%") is not "true":
+					send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::No_Break_Bed}%" to player	
+					#set block at {_Location} to air
+					#wait 1 ticks
+					#set block at {_Location} to {_itemm} 
+				else:
+					send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Features_Bed_Pickup}%" to player
+					writeFileSKY("Datas.Team-Status.%{_team}%", "false", "arenas/%{_Arena}%")
+					drop bed item at event-block without velocity
+					set block at event-block to air
+					"%type of block at block north event-block%" is "bed_block":
+						set block at block north event-block to air
+					"%type of block at block south event-block%" is "bed_block":
+						set block at block south event-block to air
+					"%type of block at block west event-block%" is "bed_block":
+						set block at block west event-block to air
+					"%type of block at block east event-block%" is "bed_block":
+						set block at block east event-block to air
+			else:
+				#degerEkleYML("Datas.Players-List.%uuid of player%.Breaked", 1, "%{minigamesapi::game}%/arenas/%{_Arena}%")
+				#degerEkle(player, "bedwars", "breaked", 1, "%replaceMessage(player, {MySQLAPI::bedwars::default})%")
+				set {_finder} to 200
+				set {_name} to "?"
+				set {_Beds::*} to configuration section "Datas.Temp-Bed-Locations" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+				loop size of {_Beds::*} times:
+					set {_x} to checkFileSKY("Datas.Temp-Bed-Locations.%loop-number%.x", "arenas/%{_Arena}%") parsed as number
+					set {_y} to checkFileSKY("Datas.Temp-Bed-Locations.%loop-number%.y", "arenas/%{_Arena}%") parsed as number
+					set {_z} to checkFileSKY("Datas.Temp-Bed-Locations.%loop-number%.z", "arenas/%{_Arena}%") parsed as number
+					set {_w} to checkFileSKY("Datas.Temp-Bed-Locations.%loop-number%.world", "arenas/%{_Arena}%") parsed as world
+					set {_Location::%loop-number%} to location ({_x}, {_y}, {_z}) in world {_w}  
+					distance between location of event-block and {_Location::%loop-number%} is less than {_finder}:
+						set {_finder} to distance between location of event-block and {_Location::%loop-number%}
+						set {_name} to "%loop-number%"
+				{_name} is not "?"
+				"%type of block at block north {_Location::%{_name}%}%" is "bed_block":
+					set block at block north event-block to air
+				"%type of block at block south {_Location::%{_name}%}%" is "bed_block":
+					set block at block south event-block to air
+				"%type of block at block west {_Location::%{_name}%}%" is "bed_block":
+					set block at block west event-block to air
+				"%type of block at block east {_Location::%{_name}%}%" is "bed_block":
+					set block at block east event-block to air
+				set {_x1} to checkFileSKY("Datas.Spawns.%{_name}%.x", "maps/%{_CurrentMap}%") parsed as number
+				set {_y1} to checkFileSKY("Datas.Spawns.%{_name}%.y", "maps/%{_CurrentMap}%") parsed as number
+				set {_z1} to checkFileSKY("Datas.Spawns.%{_name}%.z", "maps/%{_CurrentMap}%") parsed as number
+				set {_w1} to checkFileSKY("Datas.Spawns.%{_name}%.world", "maps/%{_CurrentMap}%") parsed as world
+				set {_Loc2} to location of block at location ({_x1}, {_y1}, {_z1}) in world {_w1}			
+				set {_found} to false
+				set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+				loop {_PlayerList::*}:
+					set {_Team::%loop-value%} to checkFileSKY("Datas.Players-List.%loop-value%.Team", "arenas/%{_Arena}%")
+					{_Team::%loop-value%} is "%{_name}%":
+						set {_found} to true
+						set {_Player::%loop-value%} to checkFileSKY("Datas.Players-List.%loop-value%.Username", "arenas/%{_Arena}%") parsed as player
+						set {_uuid::%loop-value%} to "%uuid of {_Player::%loop-value%}%"
+						set {_lang.%loop-value%} to language of {_Player::%loop-value%}
+						set {_featureSaver} to checkFileSKY("Datas.Features.%{_name}%.2", "arenas/%{_Arena}%")
+						if {_featureSaver} is not "true":
+							playSoundSKY({_Player::%loop-value%}, "ENTITY_WITHER_DEATH", "ENTITY_WITHER_DEATH", 1)
+							send title "%{SW::Messages::%{_lang.%loop-value%}%::Your_Bed_Destroy_Feature_1}%" with subtitle "%{SW::Messages::%{_lang.%loop-value%}%::Your_Bed_Destroy_2}%" for 2 seconds to {_Player::%loop-value%}
+						else:
+							teleport {_Player::%loop-value%} to {_Loc2}
+							playSoundSKY({_Player::%loop-value%}, "ENTITY_GHAST_WARN", "ENTITY_GHAST_WARN", 1)
+							send title "%{SW::Messages::%{_lang.%loop-value%}%::Your_Bed_Destroy_Feature_1}%" with subtitle " " for 1 seconds to {_Player::%loop-value%}
+							send "%{SW::Prefix}% %{SW::Messages::%{_lang.%loop-value%}%::Your_Bed_Destroy_Feature}%" to {_Player::%loop-value%}
+							set {_featureSaved} to true
+					
+				{_featureSaved} is true:
+					writeFileSKY("Datas.Features.%{_name}%.2", "false", "arenas/%{_Arena}%")
+					writeFileSKY("Datas.Used-Features.%{_name}%.2", "true", "arenas/%{_Arena}%")
+					send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::This_Bed_Feature}%" to player
+					wait 3 seconds
+					set block at {_Location::%{_name}%} to air
+					set block at block north {_Location::%{_name}%} to air
+					set block at block south {_Location::%{_name}%} to air
+					set block at block west {_Location::%{_name}%} to air
+					set block at block east {_Location::%{_name}%} to air
+					wait 1 ticks
+					set block at {_Location::%{_name}%} to bed_block:8  
+					stop
+				{_found} is false:
+					winMatch({_Arena})
+					wait 5 seconds
+					writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")	
+					wait 1 ticks
+					debugArena("%{_Arena}%", "win")
+				checkFileSKY("Datas.Features.%{_team}%.4", "arenas/%{_Arena}%") is "true":
+					apply potion of speed of tier 2 to the player for 15 seconds
+				writeFileSKY("Datas.Team-Status.%{_name}%", "false", "arenas/%{_Arena}%")
+				set {_lang} to language of player
+				broadcast ""
+				broadcastServer("Bed_Destroy", "{BY}^%player%~{TEAM}^%{SW::Messages::%{_lang}%::Team_%{_name}%_Name}%", false)	
+				broadcast ""				
+		else:
+			player has permission "minigameapi.admin":
+				stop
+			set {_loc} to "%location of event-block%"
+			replace all ", y: " and ", z: " with "|" in {_loc}
+			replace all "." with "," in {_loc}
+			replace all "x: " with "" in {_loc} 
+			checkFileSKY("Datas.Blocks.%{_loc}%", "arenas/%{_Arena}%") is "*"
+			cancel event
+			set {_lang} to language of player
+			send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::No_Break}%" to player	
+	else if checkFileSKY("Players.Spectator", "playerdata/%uuid of player%") is not "*":
+		cancel event
+on place:
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of player%")
+	if {_Arena} is not "*":
+		set {_lang} to language of player
+		if checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "0" or "1":
+			player has permission "minigameapi.admin":
+				stop
+			cancel event
+			send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::No_Action_Lobby}%" to player
+		else:
+			if "%type of event-block%" is not "bed_block":
+				set {_loc} to "%location of event-block%"
+				replace all ", y: " and ", z: " with "|" in {_loc}
+				replace all "." with "," in {_loc}
+				replace all "x: " with "" in {_loc} 	
+				writeFileSKY("Datas.Blocks.%{_loc}%", "%player%", "arenas/%{_Arena}%")
+			else:
+				set {_team} to checkFileSKY("Datas.Players-List.%uuid of player%.Team", "arenas/%{_Arena}%")
+				checkFileSKY("Datas.Features.%{_team}%.1", "arenas/%{_Arena}%") is "true"
+				set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
+				set {_defaulty} to checkFileSKY("Datas.Bed.1.y", "maps/%{_CurrentMap}%") parsed as number
+				set {_y} to y coordinate of event-block
+				{_y} is not between {_defaulty}-1 and {_defaulty}+1:
+					send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Features_Bed_Pickup_2}%" to player
+					cancel event
+					stop
+				set {_x} to x coordinate of event-block
+				set {_z} to z coordinate of event-block
+				set {_w} to world of event-block
+				writeFileSKY("Datas.Team-Status.%{_team}%", "*", "arenas/%{_Arena}%")
+				writeFileSKY("Datas.Temp-Bed-Locations.%{_team}%.x", "%{_x}%", "arenas/%{_Arena}%")
+				writeFileSKY("Datas.Temp-Bed-Locations.%{_team}%.y", "%{_y}%", "arenas/%{_Arena}%")	
+				writeFileSKY("Datas.Temp-Bed-Locations.%{_team}%.z", "%{_z}%", "arenas/%{_Arena}%")	
+				writeFileSKY("Datas.Temp-Bed-Locations.%{_team}%.world", "%{_w}%", "arenas/%{_Arena}%")	
+				writeFileSKY("Datas.Features.%{_team}%.1", "false", "arenas/%{_Arena}%")
+				writeFileSKY("Datas.Used-Features.%{_team}%.1", "true", "arenas/%{_Arena}%")
+				send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Features_Bed_Pickup_3}%" to player
+	else if checkFileSKY("Players.Spectator", "playerdata/%uuid of player%") is not "*":
+		player has permission "minigameapi.admin":
+			stop
+		cancel event
+on rightclick with emerald:
+	set {_lang} to language of player
+	name of player's tool contains "%{SW::Messages::%{_lang}%::Item_Emerald}%"
+	cancel event
+	set {_Arena} to name of player's tool
+	replace all "%{SW::Messages::%{_lang}%::Item_Emerald}%" with "" in {_Arena}
+	arenaGUI(player, "%{_Arena}%")
+on chat:
+	set {_message} to message
+	{_message} contains "%%":
+		replace all "%%" with "％" in {_message}
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of player%")
+	{_Arena} is not "*":
+		set {_Team} to checkFileSKY("Datas.Players-List.%uuid of player%.Team", "arenas/%{_Arena}%")
+	{_Team} is not set:
+		set {_Team} to 0
+	{_Team} is "*":
+		set {_Team} to 0
+	set message format to "%{SW::Messages::Team_%{_Team}%_ChatColor}%⬛ &7%uncolored display name of player% &8➵ &7%{_message}%"	
+function itemShopPriceChecker(Player: player, Type: number, Slot: number) :: boolean:		
+	set {_lang} to language of {_Player}
+	set {_costText::*} to {SW::Messages::%{_lang}%::ItemShop_Type_%{_Type}%_Cost::%{_Slot}%} split at " "
+	set {_costFinder} to {_costText::2}
+	if {_costFinder} is "iron" or "hierro":
+		set {_ItemValue} to iron ingot
+	else if {_costFinder} is "gold" or "oro":
+		set {_ItemValue} to gold ingot
+	else if {_costFinder} is "diamond" or "diamante":
+		set {_ItemValue} to diamond
+	else if {_costFinder} is "emerald" or "esmeralda":
+		set {_ItemValue} to emerald
+	set {_amount} to {_costText::1} parsed as number
+	if number of {_ItemValue} in {_Player}'s inventory is greater or equal to {_amount}:
+		return true
+	else:
+		return false	
+function itemShopBuy(Player: player, Type: number, Slot: number):
+	set {_UUID} to "%uuid of {_Player}%"
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
+	{_Arena} is not "*"
+	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+	set {_lang} to language of {_Player}
+	set {_costText::*} to {SW::Messages::%{_lang}%::ItemShop_Type_%{_Type}%_Cost::%{_Slot}%} split at " "
+	set {_costFinder} to {_costText::2}
+	if {_costFinder} is "iron" or "hierro":
+		set {_ItemValue} to iron ingot
+	else if {_costFinder} is "gold" or "oro":
+		set {_ItemValue} to gold ingot
+	else if {_costFinder} is "diamond" or "diamante":
+		set {_ItemValue} to diamond
+	else if {_costFinder} is "emerald" or "esmeralda":
+		set {_ItemValue} to emerald
+	set {_amount} to {_costText::1} parsed as number
+	if number of {_ItemValue} in {_Player}'s inventory is greater or equal to {_amount}:
+		set {_i} to "%{_amount}% %{_ItemValue}%" parsed as material
+		playSoundSKY({_Player}, "NOTE_PLING", "NOTE_PLING", 1)
+		remove {_i} from {_Player}'s inventory
+		if {_Type} is not 1 or 2:
+			{_Type} is 3:
+				{_Slot} is 1
+				set {_Team} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%")
+				give 16 of {SW::Messages::Team_%{_Team}%_WoolColor} to {_Player}
+				stop
+			give {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%} to {_Player}
+			stop
+		else if {_Type} is 2:
+			slot 0 of {_Player}'s inventory is not air:
+				give slot 0 of {_Player}'s inventory to {_Player}
+				wait 1 ticks
+			set slot 0 of {_Player}'s inventory to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
+			stop
+		else if {_Type} is 1:
+			if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "helmet":
+				set {_Player}'s helmet to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
+				writeFileSKY("Datas.Players-List.%{_UUID}%.Helmet", "%{_Slot}%", "arenas/%{_Arena}%")
+				stop
+			else if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "chestplate":
+				set {_Player}'s chestplate to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
+				writeFileSKY("Datas.Players-List.%{_UUID}%.Chestplate", "%{_Slot}%", "arenas/%{_Arena}%")
+				stop
+			else if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "leggings":
+				set {_Player}'s leggings to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
+				writeFileSKY("Datas.Players-List.%{_UUID}%.Leggings", "%{_Slot}%", "arenas/%{_Arena}%")
+				stop
+			else if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "boots":
+				set {_Player}'s boots to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
+				writeFileSKY("Datas.Players-List.%{_UUID}%.Boots", "%{_Slot}%", "arenas/%{_Arena}%")
+				stop
+	else:
+		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::No_Resource}%" to {_Player}
+		playSoundSKY({_Player}, "NOTE_HARP", "NOTE_HARP", 1)
+		stop
+function itemShop(Player: player, Type: number):
+	set {_UUID} to "%uuid of {_Player}%"
+	
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
+	{_Arena} is not "*"
+	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+	set {_lang} to language of {_Player}
+	wait 2 ticks
+	inventory name of {_Player}'in mevcut envanteri is not "%{SW::Messages::%{_lang}%::ItemShop_Header}%: %uncolored {SW::Messages::%{_lang}%::ItemShop_Type_0_Name::%{_Type}%}%":
+		open virtual chest inventory with size 6 named "%{SW::Messages::%{_lang}%::ItemShop_Header}%: %uncolored {SW::Messages::%{_lang}%::ItemShop_Type_0_Name::%{_Type}%}%" to {_Player}
+	wait 1 ticks	
+	
+	format gui slot 0 of {_Player} with {SW::Messages::ItemShop_Type_0_Item::0} named "%{SW::Messages::%{_lang}%::ItemShop_Type_0_Name::0}%" with lore "%{SW::Messages::%{_lang}%::Click_To_Quick_Buy_Menu}%" to run function itemShop({_Player}, 0)
+	
+	set {_calc.0} to 9
+	set {_z} to 2
+	loop 7 times:
+		set {_calc.%loop-number%} to 10+{_Type} 
+		format gui slot {_z} of {_Player} with {SW::Messages::ItemShop_Type_0_Item::%loop-number%} named "%{SW::Messages::%{_lang}%::ItemShop_Type_0_Name::%loop-number%}%" with lore "%{SW::Messages::%{_lang}%::ItemShop_List}%%{SW::Messages::%{_lang}%::ItemShop_Type_0_Lore::%loop-value%}%%{SW::Messages::%{_lang}%::ItemShop_Click_See}%" to run function itemShop({_Player}, loop-number)
+		add 1 to {_z}
+	
+		
+	set {_x} to 9
+	set {_item} to {SW::Menu_Item}
+	loop 9 times:
+		{_x} is {_calc.%{_Type}%}:
+			set {_item} to {SW::Messages::Team_3_GlassColor}
+		{_x} is between 9 and 17:
+			format gui slot {_x} of {_Player} with {_item} named "%{SW::Messages::%{_lang}%::Glass_Notifier_1_1}%" with lore "%{SW::Messages::%{_lang}%::Glass_Notifier_1_2}%" 
+		set {_item} to {SW::Menu_Item}
+		add 1 to {_x}
+	if {_Type} is 0:
+		set {_z} to 28
+		set {_item.1} to "101" parsed as material
+		set {_item.2} to "102" parsed as material
+		set {_slot} to 1
+		loop 14 times:
+			{_z} is 35:
+				add 2 to {_z}
+			set {_lore} to "%{SW::Messages::%{_lang}%::ItemShop_Quick_Buy_Locked_Lore}%"
+			replace all "{LVL}" with "%5 * {_slot}%" in {_lore}
+			format gui slot {_z} of {_Player} with {_item.1} named "%{SW::Messages::%{_lang}%::ItemShop_Quick_Buy_Locked}% ##%{_slot}%" with lore {_lore}
+			add 1 to {_z}
+			add 1 to {_slot}
+	else:	
+		set {_z} to 28
+		loop 14 times:
+			{_z} is 35:
+				add 2 to {_z}
+			unformat gui slot {_z} of {_Player}
+			add 1 to {_z}
+		set {_x} to 28
+		loop size of {SW::Messages::ItemShop_Type_%{_Type}%_Item::*} times:
+			set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_No}
+			set {_buylore} to {SW::Messages::%{_lang}%::ItemShop_Click_No}
+			set {_r} to itemShopPriceChecker({_Player}, {_Type}, loop-number)
+			{_r} is true:
+				set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_Yes}
+				set {_buylore} to {SW::Messages::%{_lang}%::ItemShop_Click_Buy}
+			set {_c} to {SW::Messages::%{_lang}%::ItemShop_Cost}
+			set {_m} to {SW::Messages::%{_lang}%::ItemShop_Type_%{_Type}%_Cost::%loop-number%}
+			replace all "iron" with "%{SW::Messages::%{_lang}%::Text_Iron}%" in {_m}
+			replace all "gold" with "%{SW::Messages::%{_lang}%::Text_Gold}%" in {_m}
+			replace all "diamond" with "%{SW::Messages::%{_lang}%::Text_Diamond}%" in {_m}
+			replace all "emerald" with "%{SW::Messages::%{_lang}%::Text_Emerald}%" in {_m}
+			replace all "{COST}" with "%{_m}%" in {_c}
+			set {_lore} to "%{_c}%%{_buylore}%"
+			{_Type} is 1 or 2:
+				set {_lore} to "%{_lore}%||%{SW::Messages::%{_lang}%::Cant_Lose_Death}%"
+			{_Type} is 1:
+				set {_lore} to "%{_lore}%||%{SW::Messages::%{_lang}%::Comes_With_That}%"
+			format gui slot {_x} of {_Player} with {SW::Messages::ItemShop_Type_%{_Type}%_Item::%loop-number%} named "%{_prefix}%%uncolored {SW::Messages::%{_lang}%::ItemShop_Type_%{_Type}%_Name::%loop-number%}%" with lore "%{_lore}%" to run function itemShopBuy({_Player}, {_Type}, loop-number)
+			add 1 to {_x}
+function teleportDelayAPI(Player: player):
+	set {_UUID} to "%uuid of {_Player}%"
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
+	{_Arena} is not "*"
+	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+	set {_lang} to language of {_Player}
+	set {_Team} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%")
+	checkFileSKY("Datas.Used-Features.%{_Team}%.5", "arenas/%{_Arena}%") is "*"	
+	set {_tp} to checkFileSKY("Datas.Players-List.%{_UUID}%.TP", "arenas/%{_Arena}%")
+	{_tp} is "*"
+	writeFileSKY("Datas.Players-List.%{_UUID}%.TP", "true", "arenas/%{_Arena}%")
+	set {_time} to 5
+	set {_cl} to "&c"
+	set {_locControl} to {_Player}'s x-coord
+	while {_time} is not 0:
+		if {_Player} is online:
+			if checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2":
+				if checkFileSKY("Datas.Players-List.%{_UUID}%.TP", "arenas/%{_Arena}%") is "true":
+					set {_CurrentX} to {_Player}'s x-coord
+					{_locControl} is not between {_CurrentX}-1 and {_CurrentX}+1:
+						writeFileSKY("Datas.Players-List.%{_UUID}%.TP", "*", "arenas/%{_Arena}%")
+					{_time} < 4:
+						set {_cl} to "&a"
+					send title "% {_cl}%%{_time}%" with subtitle "" for 1 seconds to {_Player}
+					playSoundSKY({_Player}, "NOTE_HAT", "CHICKEN_EGG_POP", 1)
+					remove 1 from {_time}
+					wait 21 ticks
+				else:
+					send title "&4✘" with subtitle "" for 1 seconds to {_Player}
+					send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Features_Teleport_Cancel}%" to {_Player}
+					writeFileSKY("Datas.Players-List.%{_UUID}%.TP", "*", "arenas/%{_Arena}%")
+					stop
+			else:
+				stop
+		else:
+			stop
+	remove eye of ender from {_Player}
+	writeFileSKY("Datas.Used-Features.%{_Team}%.5", "true", "arenas/%{_Arena}%")		
+	writeFileSKY("Datas.Players-List.%{_UUID}%.TP", "*", "arenas/%{_Arena}%")
+	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
+	set {_x} to checkFileSKY("Datas.Spawns.%{_Team}%.x", "maps/%{_CurrentMap}%") parsed as number
+	set {_y} to checkFileSKY("Datas.Spawns.%{_Team}%.y", "maps/%{_CurrentMap}%") parsed as number
+	set {_z} to checkFileSKY("Datas.Spawns.%{_Team}%.z", "maps/%{_CurrentMap}%") parsed as number
+	set {_w} to checkFileSKY("Datas.Spawns.%{_Team}%.world", "maps/%{_CurrentMap}%") parsed as world
+	set {_Loc} to location of block at location ({_x}, {_y}, {_z}) in world {_w}
+	send title "&2✓" with subtitle "" for 1 seconds to {_Player}
+	teleport {_Player} to {_Loc}  
+	playSoundSKY({_Player}, "BLOCK_PISTON_EXTEND ", "PISTON_EXTEND", 1)
+	stop
+function upgradeMenuBuy(Player: player, Type: number, Slot: number):
+	set {_UUID} to "%uuid of {_Player}%"
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
+	{_Arena} is not "*"
+	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+	set {_Team} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%") parsed as number
+	set {_lang} to language of {_Player}
+	if {_Type} is 0:
+		set {_PlayerTier} to checkFileSKY("Datas.Upgrades-Tier.%{_Team}%.%{_Slot}%", "arenas/%{_Arena}%") parsed as number
+		{_PlayerTier} is not set:
+			set {_PlayerTier} to 0
+		set {_NextTier} to {_PlayerTier}+1	
+		set {_cost} to {SW::Messages::Upgrades_Cost::%{_Slot}%::Tier::%{_NextTier}%}
+	else:
+		set {_cost} to {SW::Messages::Features_Cost::%{_Slot}%}
+	set {_confrm} to false
+	if {_Type} is 0:
+		set {_max} to size of {SW::Messages::Upgrades_Cost::%{_Slot}%::Tier::*}
+		if {_max} is greater or equal to {_NextTier}:
+			set {_confrm} to true
+		else:
+			send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Upgrades_Tier_Error}%" to {_Player}
+			stop
+	else:
+		if checkFileSKY("Datas.Features.%{_Team}%.%{_Slot}%", "arenas/%{_Arena}%") is "true":
+			send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Features_Error}%" to {_Player}
+			stop
+		else:
+			set {_confrm} to true
+	{_confrm} is true
+	if number of diamond in {_Player}'s inventory is greater or equal to {_cost}:
+		if {_Type} is 0:
+			set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
+			loop {_PlayerList::*}:
+				set {_Team::%loop-value%} to checkFileSKY("Datas.Players-List.%loop-value%.Team", "arenas/%{_Arena}%")
+				{_Team::%loop-value%} is "%{_Team}%"
+				if {_Slot} is 1:
+					apply potion of strength of tier 1 to {_Player} for 999 minutes
+				else if {_Slot} is 2:
+					apply potion of resistance of tier {_NextTier} to {_Player} for 999 minutes
+				else if {_Slot} is 3:
+					apply potion of haste of tier {_NextTier} to {_Player} for 999 minutes
+				else if {_Slot} is 4:
+					apply potion of regeneration of tier {_NextTier} to {_Player} for 999 minutes	
+			{_Slot} is 5:
+				degerEkleSKY("Datas.Dropper-Tiers.%{_Team}%", 1, "arenas/%{_Arena}%")
+				set {_Dropper} to checkFileSKY("Datas.Dropper-Tiers.%{_Team}%", "arenas/%{_Arena}%") parsed as number	
+				{_Dropper} is 3:
+					dropIngots("%{_Arena}%", {_Team}, 2)
+			degerEkleSKY("Datas.Upgrades-Tier.%{_Team}%.%{_Slot}%", 1, "arenas/%{_Arena}%")
+			set {_msg} to {SW::Messages::%{_lang}%::Upgrades_Upgraded_Tier}
+			replace all "{NAME}" with "%{SW::Messages::%{_lang}%::Upgrades_Name::%{_Slot}%}%" in {_msg}
+			replace all "{TIER}" with "%{_NextTier}%" in {_msg}
+			send "%{SW::Prefix}% %{_msg}%" to {_Player}
+		else if {_Type} is 1:
+			checkFileSKY("Datas.Used-Features.%{_Team}%.%{_Slot}%", "arenas/%{_Arena}%") is "true":
+				send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Features_One_Use}%" to {_Player}
+				stop	
+			{_Slot} is 5:
+				give eye of ender named "%{SW::Messages::%{_lang}%::Features_FeatureItems_5_Name}%" with lore "%{SW::Messages::%{_lang}%::Features_FeatureItems_5_Lore}%" to {_Player}
+			writeFileSKY("Datas.Features.%{_Team}%.%{_Slot}%", "true", "arenas/%{_Arena}%")
+			set {_msg} to {SW::Messages::%{_lang}%::Features_Buy}
+			replace all "{NAME}" with "%{SW::Messages::%{_lang}%::Features_Name::%{_Slot}%}%" in {_msg}
+			send "%{SW::Prefix}% %{_msg}%" to {_Player}
+			send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Features_Buy_Lore_%{_Slot}%}%" to {_Player}		
+		set {_i} to "%{_cost}% diamond" parsed as material
+		play sound "NOTE_PLING" to {_Player} with volume 1 and pitch 1
+		remove {_i} from {_Player}'s inventory			
+	else:
+		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::No_Resource}%" to {_Player}
+		play sound "NOTE_HARP" to {_Player} with volume 1 and pitch 1
+		stop
+function upgradeMenu(Player: player):
+	set {_UUID} to "%uuid of {_Player}%"
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
+	{_Arena} is not "*"
+	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+	set {_Team} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%")
+	set {_gitem} to {SW::Messages::Team_%{_Team}%_GlassColor}
+	{_Team} is "*":
+		set {_gitem} to {SW::Menu_Item}
+	set {_lang} to language of {_Player}
+	wait 2 ticks
+	open virtual chest inventory with size 5 named "%{SW::Messages::%{_lang}%::Upgrades_Header}%" to {_Player}
+	wait 1 ticks	
+	set {_z} to 11
+	loop 5 times:	
+		set {_tierLore} to "||"
+		set {_PlayerTier} to checkFileSKY("Datas.Upgrades-Tier.%{_Team}%.%loop-number-1%", "arenas/%{_Arena}%") parsed as number
+		{_PlayerTier} is not set:
+			set {_PlayerTier} to 0
+		set {_NextTier} to {_PlayerTier}+1	
+		loop 4 times:
+			set {_currentTierPrefix} to "&f•"
+			{SW::Messages::Upgrades_Cost::%loop-number-1%::Tier::%loop-number-2%} is set
+			{_PlayerTier} is loop-number-2:
+				set {_currentTierPrefix} to "&6•"
+			set {_tierLore} to "%{_tierLore}%||%{_currentTierPrefix}% %{SW::Messages::%{_lang}%::Upgrades_Tier_%loop-number-2%}%"
+			replace all "{TIER%loop-number-2%}" with "%{SW::Messages::Upgrades_Cost::%loop-number-1%::Tier::%loop-number-2%}%" in {_tierLore}
+			loop-number-1 is 5:
+				set {_tierLore} to "%{_tierLore}% %{SW::Messages::%{_lang}%::Upgrades_Lore::5_%loop-number-2%}%"
+			set {_max} to loop-number-2
+		set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_No}
+		set {_buylore} to {SW::Messages::%{_lang}%::Upgrades_Lore_No}	
+		if {_max} is less than {_NextTier}:
+			set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_Max}
+			set {_buylore} to {SW::Messages::%{_lang}%::Upgrades_Lore_Max}	
+		else:
+			number of diamond in {_Player}'s inventory is greater or equal to {SW::Messages::Upgrades_Cost::%loop-number-1%::Tier::%{_NextTier}%}:
+				set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_Yes}
+				set {_buylore} to {SW::Messages::%{_lang}%::ItemShop_Click_Buy}	
+		format gui slot {_z} of {_Player} with {SW::Messages::Upgrades_Item::%loop-number-1%} named "%{_prefix}%%{SW::Messages::%{_lang}%::Upgrades_Name::%loop-number-1%}%" with lore "%{SW::Messages::%{_lang}%::Upgrades_Lore::%loop-number-1%}%%{_tierLore}%%{_buylore}%" to close then run function upgradeMenuBuy({_Player}, 0, loop-number)
+		add 1 to {_z}
+	loop 27 times:
+		{_x} is between 18 and 26:
+			format gui slot {_x} of {_Player} with {_gitem} named "%{SW::Messages::%{_lang}%::Glass_Notifier_2_1}%" with lore "%{SW::Messages::%{_lang}%::Glass_Notifier_2_2}%" 
+		add 1 to {_x}
+	set {_z} to 29
+	loop 5 times:	
+		set {_cost} to {SW::Messages::%{_lang}%::Features_Cost}
+		replace all "{COST}" with "%{SW::Messages::Features_Cost::%loop-number-1%}%" in {_cost}
+		set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_No}
+		set {_buylore} to {SW::Messages::%{_lang}%::Upgrades_Lore_No}	
+		if checkFileSKY("Datas.Features.%{_Team}%.%loop-number%", "arenas/%{_Arena}%") is "*" or "false":
+			number of diamond in {_Player}'s inventory is greater or equal to {SW::Messages::Features_Cost::%loop-number-1%}:
+				set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_Yes}
+				set {_buylore} to {SW::Messages::%{_lang}%::ItemShop_Click_Buy}	
+		else:
+			set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_Max}
+			set {_buylore} to {SW::Messages::%{_lang}%::Features_Lore_Using}	
+		checkFileSKY("Datas.Used-Features.%{_Team}%.%loop-number%", "arenas/%{_Arena}%") is "true":
+			set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_Used}
+			set {_buylore} to {SW::Messages::%{_lang}%::ItemShop_Click_Used}	
+		format gui slot {_z} of {_Player} with {SW::Messages::Features_Item::%loop-number-1%} named "%{_prefix}%%{SW::Messages::%{_lang}%::Features_Name::%loop-number-1%}%" with lore "%{SW::Messages::%{_lang}%::Features_Lore::%loop-number-1%}%%{_cost}%%{_buylore}%" to close then run function upgradeMenuBuy({_Player}, 1, loop-number)
+		add 1 to {_z}			
+on rightclick on villager:
+	cancel event
+	if name of clicked villager is "%{SW::Messages::Item_Shop_NPC}%":
+		wait 2 tick
+		itemShop(player, 0)
+	else if name of clicked villager is "%{SW::Messages::Upgrade}%":
+		wait 1 tick
+		upgradeMenu(player)
+on damage of villager:
+	attacker is a player
+	attacker has permission "minigameapi.admin":
+		stop
+	cancel event
+on rightclick with eye of ender:
+	teleportDelayAPI(player)	
+on damage:
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of victim%")
+	if {_Arena} is not "*":
+		damage cause is void:
+			wait 3 ticks
+			writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "*", "arenas/%{_Arena}%")	
+			kill the victim
+			stop
+		if checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "0" or "1":
+			cancel event
+		else:
+			checkFileSKY("Datas.Type", "arenas/%{_Arena}%") is not "Solo":
+				set {_partya} to checkFileSKY("Datas.Players-List.%uuid of attacker%.HasParty", "arenas/%{_Arena}%")
+				set {_partyv} to checkFileSKY("Datas.Players-List.%uuid of victim%.HasParty", "arenas/%{_Arena}%")
+				"%{_partya}%" is "%{_partyv}%"
+				cancel event
+			if attacker is a player:
+				writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "%attacker%", "arenas/%{_Arena}%")	
+			else:
+				writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "*", "arenas/%{_Arena}%")	
+	attacker is a player
+	checkFileSKY("Players.Spectator", "playerdata/%uuid of attacker%") is not "*":
+		cancel event
+	checkFileSKY("Players.Spectator", "playerdata/%uuid of victim%") is not "*":
+		cancel event		
+on skript load:
+	wait 1 ticks
+	execute console command "/sk reload minigames_2api"
+on load:
+	set {minigamesapi::shortnamegame} to "%{minigamesapi::game}%" to all lower case
+	#
+	set {SW::Messages::Item_Shop_NPC} to "&a☺"
+	set {SW::Messages::Upgrade} to "&6⇪"
+	#
+	set {SW::Messages::Upgrades_Item::1} to iron sword
+	set {SW::Messages::Upgrades_Item::2} to chain chestplate
+	set {SW::Messages::Upgrades_Item::3} to gold pickaxe
+	set {SW::Messages::Upgrades_Item::4} to beacon
+	set {SW::Messages::Upgrades_Item::5} to "61" parsed as material
+	#
+	set {SW::Messages::Features_Item::1} to "130" parsed as material
+	set {SW::Messages::Features_Item::2} to bed item
+	set {SW::Messages::Features_Item::3} to clock
+	set {SW::Messages::Features_Item::4} to leather boots
+	set {SW::Messages::Features_Item::5} to eye of ender 
+	#
+	set {SW::Messages::Features_Cost::1} to 20
+	set {SW::Messages::Features_Cost::2} to 20
+	set {SW::Messages::Features_Cost::3} to 10
+	set {SW::Messages::Features_Cost::4} to 6
+	set {SW::Messages::Features_Cost::5} to 15
+	#
+	set {SW::Messages::Upgrades_Cost::1::Tier::1} to 8
+	set {SW::Messages::Upgrades_Cost::2::Tier::1} to 8
+	set {SW::Messages::Upgrades_Cost::2::Tier::2} to 16
+	set {SW::Messages::Upgrades_Cost::2::Tier::3} to 24
+	set {SW::Messages::Upgrades_Cost::3::Tier::1} to 3
+	set {SW::Messages::Upgrades_Cost::3::Tier::2} to 5
+	set {SW::Messages::Upgrades_Cost::4::Tier::1} to 5
+	set {SW::Messages::Upgrades_Cost::5::Tier::1} to 3
+	set {SW::Messages::Upgrades_Cost::5::Tier::2} to 6
+	set {SW::Messages::Upgrades_Cost::5::Tier::3} to 8
+	set {SW::Messages::Upgrades_Cost::5::Tier::4} to 10
+	set {SW::Messages::Team_1_Color} to red
+	set {SW::Messages::Team_2_Color} to blue
+	set {SW::Messages::Team_3_Color} to green
+	set {SW::Messages::Team_4_Color} to yellow
+	set {SW::Messages::Team_5_Color} to aqua
+	set {SW::Messages::Team_6_Color} to white
+	set {SW::Messages::Team_7_Color} to pink
+	set {SW::Messages::Team_8_Color} to gray
+	set {SW::Messages::Team_0_ChatColor} to "&0"
+	set {SW::Messages::Team_1_ChatColor} to "&c"
+	set {SW::Messages::Team_2_ChatColor} to "&9"
+	set {SW::Messages::Team_3_ChatColor} to "&a"
+	set {SW::Messages::Team_4_ChatColor} to "&e"
+	set {SW::Messages::Team_5_ChatColor} to "&b"
+	set {SW::Messages::Team_6_ChatColor} to "&f"
+	set {SW::Messages::Team_7_ChatColor} to "&d"
+	set {SW::Messages::Team_8_ChatColor} to "&8"
+	set {SW::Messages::Team_1_GlassColor} to "160:14" parsed as material
+	set {SW::Messages::Team_2_GlassColor} to "160:11" parsed as material
+	set {SW::Messages::Team_3_GlassColor} to "160:5" parsed as material
+	set {SW::Messages::Team_4_GlassColor} to "160:4" parsed as material
+	set {SW::Messages::Team_5_GlassColor} to "160:3" parsed as material 
+	set {SW::Messages::Team_6_GlassColor} to "160:0" parsed as material 
+	set {SW::Messages::Team_7_GlassColor} to "160:2" parsed as material
+	set {SW::Messages::Team_8_GlassColor} to "160:7" parsed as material
+	set {SW::Messages::Item_0} to iron ingot
+	set {SW::Messages::Item_1} to gold ingot
+	set {SW::Messages::Item_2} to emerald
+	set {SW::Messages::Quick_Buy_Item} to "101" parsed as material
+	set {SW::Messages::Dropper_Item_Timings_0_Tier_0} to 5 seconds
+	set {SW::Messages::Dropper_Item_Timings_0_Tier_1} to 4 seconds
+	set {SW::Messages::Dropper_Item_Timings_0_Tier_2} to 3 seconds
+	set {SW::Messages::Dropper_Item_Timings_0_Tier_3} to 2 seconds
+	set {SW::Messages::Dropper_Item_Timings_0_Tier_4} to 1 seconds
+	set {SW::Messages::Dropper_Item_Timings_1_Tier_0} to 6 seconds
+	set {SW::Messages::Dropper_Item_Timings_1_Tier_1} to 5 seconds
+	set {SW::Messages::Dropper_Item_Timings_1_Tier_2} to 4 seconds
+	set {SW::Messages::Dropper_Item_Timings_1_Tier_3} to 3 seconds
+	set {SW::Messages::Dropper_Item_Timings_1_Tier_4} to 2 seconds
+	set {SW::Messages::Dropper_Item_Timings_2_Tier_3} to 15 seconds
+	set {SW::Messages::Dropper_Item_Timings_2_Tier_4} to 10 seconds
+	set {SW::Messages::ItemShop_Type_0_Item::0} to nether star
+	set {SW::Messages::ItemShop_Type_0_Item::1} to chain boots
+	set {SW::Messages::ItemShop_Type_0_Item::2} to gold sword
+	set {SW::Messages::ItemShop_Type_0_Item::3} to sandstone
+	set {SW::Messages::ItemShop_Type_0_Item::4} to bow
+	set {SW::Messages::ItemShop_Type_0_Item::5} to stone pickaxe
+	set {SW::Messages::ItemShop_Type_0_Item::6} to brewing stand item
+	set {SW::Messages::ItemShop_Type_0_Item::7} to water bucket
+	set {SW::Messages::ItemShop_Type_1_Item::1} to chain boots
+	set {SW::Messages::ItemShop_Type_1_Item::2} to iron boots
+	set {SW::Messages::ItemShop_Type_1_Item::3} to diamond boots
+	set {SW::Messages::ItemShop_Type_2_Item::1} to stone sword
+	set {SW::Messages::ItemShop_Type_2_Item::2} to iron sword
+	set {SW::Messages::ItemShop_Type_2_Item::3} to diamond sword
+	set {SW::Messages::ItemShop_Type_2_Item::4} to stick of knockback 1
+	set {SW::Messages::ItemShop_Type_3_Item::1} to "16 35" parsed as material
+	set {SW::Messages::ItemShop_Type_3_Item::2} to "16 24" parsed as material
+	set {SW::Messages::ItemShop_Type_3_Item::3} to "12 121" parsed as material
+	set {SW::Messages::ItemShop_Type_3_Item::4} to 16 of ladder
+	set {SW::Messages::ItemShop_Type_3_Item::5} to "16 5:0" parsed as material
+	set {SW::Messages::ItemShop_Type_3_Item::6} to 4 of obsidian
+	set {SW::Messages::ItemShop_Type_4_Item::1} to 8 of arrow
+	set {SW::Messages::ItemShop_Type_4_Item::2} to bow
+	set {SW::Messages::ItemShop_Type_4_Item::3} to bow of power 1
+	set {SW::Messages::ItemShop_Type_4_Item::4} to bow of power 1 and punch 1
+	set {SW::Messages::ItemShop_Type_5_Item::1} to shears
+	set {SW::Messages::ItemShop_Type_5_Item::2} to wooden pickaxe
+	set {SW::Messages::ItemShop_Type_5_Item::3} to stone pickaxe of efficiency 1
+	set {SW::Messages::ItemShop_Type_5_Item::4} to iron pickaxe of efficiency 2
+	set {SW::Messages::ItemShop_Type_5_Item::5} to iron pickaxe of efficiency 3
+	set {SW::Messages::ItemShop_Type_5_Item::6} to diamond axe of efficiency 1
+	set {SW::Messages::ItemShop_Type_6_Item::1} to "373:8194" parsed as material
+	set {SW::Messages::ItemShop_Type_6_Item::2} to "373:8203" parsed as material
+	set {SW::Messages::ItemShop_Type_6_Item::3} to "373:8197" parsed as material
+	set {SW::Messages::ItemShop_Type_7_Item::1} to golden apple
+	set {SW::Messages::ItemShop_Type_7_Item::2} to 10 of snowball
+	set {SW::Messages::ItemShop_Type_7_Item::3} to ender pearl
+	set {SW::Messages::ItemShop_Type_7_Item::4} to water bucket
+	set {SW::Messages::ItemShop_Type_7_Item::5} to lava bucket
+	set {SW::Messages::Middle_Item_Emerald} to emerald
+	set {SW::Messages::Middle_Item_Diamond} to diamond
+	set {SW::Messages::Tier_1_Diamond} to 30
+	set {SW::Messages::Tier_2_Diamond} to 20
+	set {SW::Messages::Tier_3_Diamond} to 15
+	set {SW::Messages::Tier_4_Diamond} to 15
+	set {SW::Messages::Tier_1_Emerald} to 70
+	set {SW::Messages::Tier_2_Emerald} to 50
+	set {SW::Messages::Tier_3_Emerald} to 30
+	set {SW::Messages::Tier_4_Emerald} to 30
+	set {SW::Messages::Team_1_WoolColor} to "35:14" parsed as material
+	set {SW::Messages::Team_2_WoolColor} to "35:11" parsed as material
+	set {SW::Messages::Team_3_WoolColor} to "35:5" parsed as material
+	set {SW::Messages::Team_4_WoolColor} to "35:4" parsed as material
+	set {SW::Messages::Team_5_WoolColor} to "35:3" parsed as material 
+	set {SW::Messages::Team_6_WoolColor} to "35:0" parsed as material 
+	set {SW::Messages::Team_7_WoolColor} to "35:2" parsed as material
+	set {SW::Messages::Team_8_WoolColor} to "35:7" parsed as material
+	set {SW::Messages::Text_Roman_1} to "I"
+	set {SW::Messages::Text_Roman_2} to "II"
+	set {SW::Messages::Text_Roman_3} to "III"
+	set {SW::Messages::Tier_Text} to "&e⇪ = "
+	set {SW::Messages::Spawns_In} to "&6⌛ = "
+	set {SW::Messages::Type_Emerald} to "ItemStack:EMERALD_BLOCK;;&f&m-----------&r;%{SW::Messages::Tier_Text}% I;%{SW::Messages::Spawns_In}%;&f&m-----------&r"
+	set {SW::Messages::Type_Diamond} to "ItemStack:DIAMOND_BLOCK;;&f&m-----------&r;%{SW::Messages::Tier_Text}% I;%{SW::Messages::Spawns_In}%;&f&m-----------&r"
+	set {SW::Game_Item_0} to player head with custom nbt "{display:{Name:""Lime green (32CD32)""},SkullOwner:{Id:""1275bae2-2ad3-447b-bf98-e74437907bfc"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjJkMTQ1YzkzZTVlYWM0OGE2NjFjNmYyN2ZkYWZmNTkyMmNmNDMzZGQ2MjdiZjIzZWVjMzc4Yjk5NTYxOTcifX19""}]}}}"
+	set {SW::Game_Item_1} to player head with custom nbt "{display:{Name:""Dark green (006400)""},SkullOwner:{Id:""c9d71cd8-69e6-47e0-8493-197df80d3a4f"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmM5ZTYwMWVkOTE5OGRiYjM0YzUxZGRmMzIzOTI5ZjAxYTVmOTU4YWIxMTEzM2UzZTA0MDdiNjk4MzkzYjNmIn19fQ==""}]}}}"
+	set {SW::Game_Item_2} to player head with custom nbt "{display:{Name:""Yellow (FFFF00)""},SkullOwner:{Id:""11d8b86f-8c1c-4a47-bc34-26dba4640a5c"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzY0MTY4MmY0MzYwNmM1YzlhZDI2YmM3ZWE4YTMwZWU0NzU0N2M5ZGZkM2M2Y2RhNDllMWMxYTI4MTZjZjBiYSJ9fX0=""}]}}}"
+	set {SW::Game_Item_3} to player head with custom nbt "{display:{Name:""Purple (800080)""},SkullOwner:{Id:""46b5e8fd-1468-4462-ab4a-3ed65789f403"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTMyYWUyY2I4ZDJhZTYxNTE0MWQyYzY1ODkyZjM2NGZjYWRkZjczZmRlYzk5YmUxYWE2ODc0ODYzZWViNWMifX19""}]}}}"
+	set {SW::Game_Item_4} to player head with custom nbt "{display:{Name:""Red (FF0000)""},SkullOwner:{Id:""6edc03f4-71d9-4cc8-8632-ecb08c304a72"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWZkZTNiZmNlMmQ4Y2I3MjRkZTg1NTZlNWVjMjFiN2YxNWY1ODQ2ODRhYjc4NTIxNGFkZDE2NGJlNzYyNGIifX19""}]}}}"
+	set {SW::Game_Item_5} to player head with custom nbt "{display:{Name:""Black (000000)""},SkullOwner:{Id:""063df521-537b-48d4-8fab-d303500e29ca"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTY3YTJmMjE4YTZlNmUzOGYyYjU0NWY2YzE3NzMzZjRlZjliYmIyODhlNzU0MDI5NDljMDUyMTg5ZWUifX19""}]}}}"
+	set {SW::Game_Block_0} to "95:5" parsed as material
+	set {SW::Game_Block_1} to "95:13" parsed as material
+	set {SW::Game_Block_2} to "95:4" parsed as material
+	set {SW::Game_Block_3} to "95:2" parsed as material
+	set {SW::Game_Block_4} to "95:14" parsed as material
+	set {SW::Game_Block_5} to "95:7" parsed as material
+	set {SW::Confirm_Edit} to "{display:{Name:""Right""},SkullOwner:{Id:""baaa8e9f-5fda-4429-a1db-564a6d06eab4"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGE5OTM0MmUyYzczYTlmMzgyMjYyOGU3OTY0ODgyMzRmMjU4NDQ2ZjVhMmQ0ZDU5ZGRlNGFhODdkYjk4In19fQ==""}]}}}"
+	set {SW::Deny_Edit} to "{display:{Name:""Wrong""},SkullOwner:{Id:""d2a11595-c371-46a0-9106-15c357a636eb"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTZjNjBkYTQxNGJmMDM3MTU5YzhiZThkMDlhOGVjYjkxOWJmODlhMWEyMTUwMWI1YjJlYTc1OTYzOTE4YjdiIn19fQ==""}]}}}"
+	set {SW::PageAPI_NextPage_ItemNBT} to "{display:{Name:""Black Arrow Right""},SkullOwner:{Id:""79f13daf-4884-40ab-8e35-95e472463321"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjgyYWQxYjljYjRkZDIxMjU5YzBkNzVhYTMxNWZmMzg5YzNjZWY3NTJiZTM5NDkzMzgxNjRiYWM4NGE5NmUifX19""}]}}}"
+	set {SW::PageAPI_PreviousPage_ItemNBT} to "{display:{Name:""Black Arrow Left""},SkullOwner:{Id:""5fecc571-bcbb-4aaa-b53c-b5d8715dbe37"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdhZWU5YTc1YmYwZGY3ODk3MTgzMDE1Y2NhMGIyYTdkNzU1YzYzMzg4ZmYwMTc1MmQ1ZjQ0MTlmYzY0NSJ9fX0=""}]}}}"
+	set {SW::PageAPI_MainPage_Item} to nether star
+	set {SW::Menu_PreviousMenu_Item} to "160:14" parsed as material
+	set {SW::Menu_Item} to "160:15" parsed as material
+	delete {minigamesapi::inventories::*}
+	checkFileSKY("General.Storage-Type", "config") is "MySQL" or "sql" or "mysql":
+		set {_host} to checkFileSKY("General.MySQL.Connect.Host", "config")
+		set {_username} to checkFileSKY("General.MySQL.Connect.Username", "config")
+		set {_password} to checkFileSKY("General.MySQL.Connect.Password", "config")
+		set {_database} to checkFileSKY("General.MySQL.Connect.Database", "config")
+		set {_table} to checkFileSKY("General.MySQL.Connect.Table", "config")
+		set {_player} to checkFileSKY("General.MySQL.Settings.Player", "config")
+		set {_kills} to checkFileSKY("General.MySQL.Settings.Kills", "config")
+		set {_deaths} to checkFileSKY("General.MySQL.Settings.Deaths", "config")
+		set {_wins} to checkFileSKY("General.MySQL.Settings.Wins", "config")
+		set {_played} to checkFileSKY("General.MySQL.Settings.Played", "config")
+		set {_kits} to checkFileSKY("General.MySQL.Settings.Kits", "config")
+		set {_credits} to checkFileSKY("General.MySQL.Settings.Credits", "config")
+		#set mysql host to "%{_host}%"
+		#set mysql username to "%{_username}%"
+		#set mysql password to "%{_password}%"
+		#set mysql database to "%{_database}%"
+		#connect to mysql
+		#mysql update "CREATE TABLE IF NOT EXISTS `%{_table}%` (`%{_player}%` varchar(60),`%{_kills}%` INTEGER,`%{_deaths}%` INTEGER,`%{_wins}%` INTEGER,`%{_played}%` INTEGER,`%{_kits}%` varchar(500),`%{_credits}%` INTEGER)"
+	#stop
+	set {_arenas::*} to files in "plugins/%{minigamesapi::game}%/arenas"
+	loop {_arenas::*}:
+		set {_file} to "%loop-value%"
+		replace all ".yml" with "" in {_file}	
+		debugArena("%{_file}%", "time")	
+		wait 1 seconds
+	#refreshValuesSQL("2")

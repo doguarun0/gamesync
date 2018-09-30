@@ -1,0 +1,138 @@
+on load:
+	set {Version::mysqlapi} to "0.1"
+	set {MySQLAPI::default::tablo} to "UsersREPU"
+	set {MySQLAPI::default::user} to "user_uuid"
+	set {MySQLAPI::default::default} to "(`user_uuid`, `user_name`, `rank`) VALUES ('{UUID}', '{PLAYER}', 'Default');"
+	set {sql1} to the database "mysql://54.39.22.194:3306/DB_Global?user=minecrowddb&password=K2v9pgFB&useSSL=false"
+	set {_read} to "CREATE TABLE IF NOT EXISTS `UsersREPU` (`user_uuid` varchar(255),`user_name` varchar(255),`rank` varchar(20) NOT NULL DEFAULT 'Default',`credit` int(40) NOT NULL DEFAULT '0',`lang` varchar(10) NOT NULL DEFAULT 'EN',`lastlogin` varchar(25) NOT NULL DEFAULT '*',`totalcredit` int(40) NOT NULL DEFAULT '0',`lastdepositedcredit` int(40) NOT NULL DEFAULT '0',`lastdepositeddate` varchar(1024) NOT NULL DEFAULT '0',`bookdisable` varchar(10) NOT NULL DEFAULT 'false',`bookdisabletime` varchar(25) NOT NULL DEFAULT '*',UNIQUE KEY `user_uuid` (user_uuid),UNIQUE KEY `user_name` (`user_name`))"
+	
+	execute unsafe {_read} in {sql1} 
+	the last error is set
+	send "%the last error%" to console
+function replaceMessage(player: player, type: text) :: text:
+	set {_def} to {_type}
+	set {_uuid} to "%uuid of {_player}%"
+	replace all "{PLAYER}" with "%{_player}%" in {_def}
+	replace all "{UUID}" with "%{_uuid}%" in {_def}
+	return {_def}
+effect refreshsqldata %string% with id %string%:
+	trigger:
+		set {_tablo} to {MySQLAPI::%expression-2%::tablo}
+		set {_user} to {MySQLAPI::%expression-2%::user}
+		set {_p} to "%expression-1%" parsed as offline player
+		set {_uuid} to "%uuid of {_p}%"
+		set {_read} to "SELECT * FROM %{_tablo}% WHERE %{_user}% = '%{_uuid}%'"
+		execute unsafe {_read} in {sql1} and store the result in {_output::*}
+		if {_output::%{_user}%::1} is set:
+			loop {_output::*}:
+				set yaml value "Datas.%expression-2%.%loop-value%" from file "plugins/Minecrowd/temp-datas/%expression-1%.yml" to "%{_output::%loop-value%::1}%"
+		else:
+			set {_read} to "INSERT INTO `%{_tablo}%` %replaceMessage({_p}, {MySQLAPI::%expression-2%::default})%"
+			execute unsafe {_read} in {sql1}
+			wait 3 ticks
+			set {_read} to "SELECT * FROM %{_tablo}% WHERE %{_user}% = '%{_uuid}%'"
+			execute unsafe {_read} in {sql1} and store the result in {_output::*}
+			loop {_output::*}:
+				set yaml value "Datas.%expression-2%.%loop-value%" from file "plugins/Minecrowd/temp-datas/%expression-1%.yml" to "%{_output::%loop-value%::1}%"
+expression sql data %string% with id %string% [for type %-string%]:
+	add:
+		if change value is set:
+			expression-2 is set
+			expression-3 is set
+			set {_tablo} to {MySQLAPI::%expression-2%::tablo}
+			set {_user} to {MySQLAPI::%expression-2%::user}
+			set {_type} to "%expression-3%"
+			set {_p} to "%expression-1%" parsed as offline player
+			set {_uuid} to "%uuid of {_p}%"
+			set {_cmd} to "UPDATE `%{_tablo}%` SET `%{_type}%` = %{_type}% + %change value% WHERE `%{_tablo}%`.`%{_user}%` = '%{_uuid}%'"
+			execute unsafe {_cmd} in {sql1} 
+	remove:
+		if change value is set:
+			expression-2 is set
+			expression-3 is set
+			set {_tablo} to {MySQLAPI::%expression-2%::tablo}
+			set {_user} to {MySQLAPI::%expression-2%::user}
+			set {_type} to "%expression-3%"
+			set {_p} to "%expression-1%" parsed as offline player
+			set {_uuid} to "%uuid of {_p}%"
+			set {_cmd} to "UPDATE `%{_tablo}%` SET `%{_type}%` = %{_type}% - %change value% WHERE `%{_tablo}%`.`%{_user}%` = '%{_uuid}%'"
+			execute unsafe {_cmd} in {sql1} 
+			
+	delete:
+		set {_tablo} to {MySQLAPI::%expression-2%::tablo}
+		set {_user} to {MySQLAPI::%expression-2%::user}
+		set {_type} to "%expression-3%"
+		set {_p} to "%expression-1%" parsed as offline player
+		set {_uuid} to "%uuid of {_p}%"
+		set {_cmd} to "DELETE FROM %{_tablo}% WHERE %{_user}% = '%{_uuid}%'"
+		execute unsafe {_cmd} in {sql1}
+	set:
+		if change value is set:
+			expression-2 is set
+			expression-3 is set
+			set {_tablo} to {MySQLAPI::%expression-2%::tablo}
+			set {_user} to {MySQLAPI::%expression-2%::user}
+			set {_type} to "%expression-3%"
+			set {_p} to "%expression-1%" parsed as offline player
+			set {_uuid} to "%uuid of {_p}%"
+			set {_cmd} to "UPDATE `%{_tablo}%` SET `%{_type}%` = '%change value%' WHERE `%{_tablo}%`.`%{_user}%` = '%{_uuid}%'"
+			execute unsafe {_cmd} in {sql1}
+effect savesql data id %string% with full name %string%:
+	trigger:
+		set {_exp2} to "%expression-2%"
+		set {_cmd} to "INSERT INTO `%{MySQLAPI::%expression-1%::tablo}%` %{_exp2}%"
+		execute unsafe {_cmd} in {sql1} 
+function degerOku(p: offline player, id: text, type: text, full: text, insert: boolean, default: text) :: text: 
+	set {_uuid} to "%uuid of {_p}%"
+	set {_result} to a value "Datas.%{_id}%.%{_type}%" get of "plugins/Minecrowd/temp-datas/%{_p}%.yml"
+	"%{_result}%" is "<none>":
+		delete {_result}
+	{_result} is not set:
+		{_default} is not "NOVALUE":
+			{_insert} is true:
+				set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "%{_default}%"
+				savesql data id "%{_id}%" with full name "%{_full}%"
+			set {_result} to {_default}
+	return "%{_result}%"
+function degerEkle(p: offline player, id: text, type: text, number: number, full: text):
+	set {_result} to a value "Datas.%{_id}%.%{_type}%" get of "plugins/Minecrowd/temp-datas/%{_p}%.yml"
+	"%{_result}%" is "<none>":
+		delete {_result}
+	if {_result} is not set:	
+		savesql data id "%{_id}%" with full name "%{_full}%"
+		set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "0"	
+	else:
+		add {_number} to sql data "%{_p}%" with id "%{_id}%" for type {_type}
+		set {_num} to "%{_result}%" parsed as number
+		add {_number} to {_num}
+		set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "%{_num}%"	
+function degerCikar(p: offline player, id: text, type: text, number: number, full: text):
+	set {_result} to a value "Datas.%{_id}%.%{_type}%" get of "plugins/Minecrowd/temp-datas/%{_p}%.yml"
+	"%{_result}%" is "<none>":
+		delete {_result}
+	if {_result} is not set:	
+		savesql data id "%{_id}%" with full name "%{_full}%"
+		set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "0"	
+	else:
+		remove {_number} from sql data "%{_p}%" with id "%{_id}%" for type {_type}
+		set {_num} to "%{_result}%" parsed as number
+		remove {_number} from {_num}
+		set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "%{_num}%"	
+function degerAyarla(p: offline player, id: text, type: text, no: text, full: text):
+	set {_result} to a value "Datas.%{_id}%.%{_type}%" get of "plugins/Minecrowd/temp-datas/%{_p}%.yml"
+	"%{_result}%" is "<none>":
+		delete {_result}
+	if {_result} is not set:	
+		savesql data id "%{_id}%" with full name "%{_full}%"
+		set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "%{_no}%"	
+		set sql data "%{_p}%" with id "%{_id}%" for type {_type} to "%{_no}%"
+	else:
+		set sql data "%{_p}%" with id "%{_id}%" for type {_type} to "%{_no}%"
+		set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "%{_no}%"	
+function degerSil(p: offline player, id: text, type: text):
+	delete sql data "%{_p}%" with id "%{_id}%" for type {_type}
+	delete yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml"
+on join:
+	refreshsqldata "%player%" with id "default"
+on quit:
+	delete file "plugins/Minecrowd/temp-datas/%player%.yml"

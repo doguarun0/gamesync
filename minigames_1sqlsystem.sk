@@ -1,0 +1,49 @@
+on load:
+	#
+	set {MySQLAPI::parties::tablo} to "Parties"
+	set {MySQLAPI::parties::user} to "PlayerUUID"
+	set {MySQLAPI::parties::default} to "(`PlayerUUID`, `Player`, `HasParty`) VALUES ('{UUID}', '{PLAYER}', '*');"
+	#
+	set {_read} to "CREATE TABLE IF NOT EXISTS `Parties` (`PlayerUUID` varchar(60),`Player` varchar(60),`HasParty` varchar(60),`PartyType` varchar(60),`Players` varchar(255),`Friends` varchar(255),`FRequests` varchar(10),`PRequests` varchar(10),`ShowStatus` varchar(10),`SendMsg` varchar(10),`TeleportMode` varchar(10),`LastTeamMates` varchar(100),`LastLogin` varchar(50),UNIQUE KEY `PlayerUUID` (PlayerUUID),UNIQUE KEY `Player` (Player))"
+	execute unsafe {_read} in {sql1} 
+on join:
+	refreshsqldata "%player%" with id "parties"
+function getVariableSQL(p: offline player, variableName: text) :: text:
+	#
+	set {_result} to degerOku({_p}, "parties", "%{_variableName}%", "%replaceMessage({_p}, {MySQLAPI::parties::default})%", true, "NOVALUE") 
+	set {_res} to "*"
+	"%{_result}%" is "<none>":
+		delete {_result}
+	{_result} is set:
+		set {_res} to "%{_result}%"
+	return "%{_res}%"
+function getPlayersListParties(player: offline player, type: text) :: text:
+	if {_type} is "Friends":
+		set {_variableName} to "Friends"
+	else if {_type} is "LastTeamMates":
+		set {_variableName} to "LastTeamMates"
+	else:
+		set {_variableName} to "Players"
+	#
+	
+	set {_result} to degerOku({_player}, "parties", "%{_variableName}%", "%replaceMessage({_player}, {MySQLAPI::parties::default})%", true, "NOVALUE") 
+	"%{_result}%" is "<none>":
+		delete {_result}
+	set {_res} to "*;"
+	{_result} is set:
+		set {_res} to "%{_result}%"	
+	set {_text::*} to {_res} split at ";"
+	remove "" and " " from {_text::*}
+	set {_text} to "%{_text::*}%"
+	replace all ", " with "-" in {_text}
+	replace all " and " with "-" in {_text}
+	return {_text}
+function saveRecentPlayers(p: offline player, text: text):
+	degerAyarla({_p}, "parties", "LastTeamMates", "%{_text}%", "%replaceMessage({_p}, {MySQLAPI::parties::default})%")
+expression language of %player%:
+	get:
+		set {_p} to expression-1
+		set {_result} to a value "Datas.default.lang" get of "plugins/Minecrowd/temp-datas/%{_p}%.yml"
+		{_result} is not set:
+			set {_result} to "EN"
+		return {_result}
