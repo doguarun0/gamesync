@@ -91,6 +91,8 @@ function degerOku(p: offline player, id: text, type: text, full: text, insert: b
 		{_default} is not "NOVALUE":
 			{_insert} is true:
 				set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "%{_default}%"
+				replace all "{PLAYER}" with "%{_p}%" in {_full}
+				replace all "{UUID}" with "%{_uuid}%" in {_full}
 				savesql data id "%{_id}%" with full name "%{_full}%"
 			set {_result} to {_default}
 	return "%{_result}%"
@@ -99,6 +101,8 @@ function degerEkle(p: offline player, id: text, type: text, number: number, full
 	"%{_result}%" is "<none>":
 		delete {_result}
 	if {_result} is not set:	
+		replace all "{PLAYER}" with "%{_p}%" in {_full}
+		replace all "{UUID}" with "%{_uuid}%" in {_full}
 		savesql data id "%{_id}%" with full name "%{_full}%"
 		set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "0"	
 	else:
@@ -111,6 +115,8 @@ function degerCikar(p: offline player, id: text, type: text, number: number, ful
 	"%{_result}%" is "<none>":
 		delete {_result}
 	if {_result} is not set:	
+		replace all "{PLAYER}" with "%{_p}%" in {_full}
+		replace all "{UUID}" with "%{_uuid}%" in {_full}
 		savesql data id "%{_id}%" with full name "%{_full}%"
 		set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "0"	
 	else:
@@ -123,6 +129,8 @@ function degerAyarla(p: offline player, id: text, type: text, no: text, full: te
 	"%{_result}%" is "<none>":
 		delete {_result}
 	if {_result} is not set:	
+		replace all "{PLAYER}" with "%{_p}%" in {_full}
+		replace all "{UUID}" with "%{_uuid}%" in {_full}
 		savesql data id "%{_id}%" with full name "%{_full}%"
 		set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "%{_no}%"	
 		set sql data "%{_p}%" with id "%{_id}%" for type {_type} to "%{_no}%"

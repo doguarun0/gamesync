@@ -3,6 +3,7 @@ on load:
 	set {minigamesapi::game} to "KINGDOMS"
 	set {minigamesapi::game_version} to "6ekim"
 	set {minigamesapi::shortnamegame} to "kingdoms"
+
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"
