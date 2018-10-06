@@ -1,5 +1,5 @@
 on load:
-	set {minigamesapi::version} to "v0.5_25_1"
+	set {minigamesapi::version} to "6ekim"
 	set {minigamesapi::size::Solo} to 1
 	set {minigamesapi::size::Duo} to 2
 	set {minigamesapi::size::4x4} to 4
@@ -99,46 +99,19 @@ function addPlayersListPartiesSKY(party: offline player, player: offline player,
 function getVariableSKY(p: player, variableName: text) :: text:
 	set {_mysql} to checkFileSKY("General.Storage-Type", "config")
 	if {_mysql} is "MySQL" or "sql" or "mysql":
-		set {_table} to checkFileSKY("General.MySQL.Connect.Table", "config")
-		set {_player} to checkFileSKY("General.MySQL.Settings.Player", "config")
-		set {_kills} to checkFileSKY("General.MySQL.Settings.Kills", "config")
-		set {_deaths} to checkFileSKY("General.MySQL.Settings.Deaths", "config")
-		set {_wins} to checkFileSKY("General.MySQL.Settings.Wins", "config")
-		set {_played} to checkFileSKY("General.MySQL.Settings.Played", "config")
-		set {_kits} to checkFileSKY("General.MySQL.Settings.Kits", "config")
-		set {_credits} to checkFileSKY("General.MySQL.Settings.Credits", "config")
-		#
-		set {_result} to mysql result of query "SELECT * FROM %{_table}% WHERE %{_player}% = '%{_p}%'"
-		set {_string::*} to mysql string "%{_variableName}%" in {_result}
-		set {_res} to "*"
-		{_string::1} is set:
-			set {_res} to "%{_string::1}%"
-		return "%{_res}%"
+		set {_true} to true
 	else:
 		set {_uuid} to "%uuid of {_p}%"
-		set {_var} to checkFileSKY("Players.%{_variableName}%", "playerdata/%{_uuid}%")
+		#set {_var} to checkFileSKY("Players.%{_variableName}%", "playerdata/%{_uuid}%")
+		set {_var} to 0
 		return {_var}
 function setVariableSKY(p: player, variableName: text, value: text):
 	set {_mysql} to checkFileSKY("General.Storage-Type", "config")
 	if {_mysql} is "MySQL" or "sql" or "mysql":
-		wait 1 ticks
-		set {_table} to checkFileSKY("General.MySQL.Connect.Table", "config")
-		set {_player} to checkFileSKY("General.MySQL.Settings.Player", "config")
-		set {_kills} to checkFileSKY("General.MySQL.Settings.Kills", "config")
-		set {_deaths} to checkFileSKY("General.MySQL.Settings.Deaths", "config")
-		set {_wins} to checkFileSKY("General.MySQL.Settings.Wins", "config")
-		set {_played} to checkFileSKY("General.MySQL.Settings.Played", "config")
-		set {_kits} to checkFileSKY("General.MySQL.Settings.Kits", "config")
-		set {_credits} to checkFileSKY("General.MySQL.Settings.Credits", "config")
-		#
-		set {_result} to mysql result of query "SELECT * FROM %{_table}% WHERE %{_player}% = '%{_p}%'"
-		set {_string::*} to mysql string "%{_variableName}%" in {_result}
-		{_string::1} is not set:
-			mysql update "INSERT INTO `%{_table}%` (`%{_player}%`,`%{_kills}%`,`%{_deaths}%`,`%{_wins}%`,`%{_played}%`,`%{_kits}%`,`%{_credits}%`) VALUES (%{_p}%, NULL, NULL, NULL, NULL, NULL, NULL);"
-		mysql update "UPDATE `%{_table}%` SET `%{_variableName}%` = '%{_value}%' WHERE `%{_table}%`.`%{_player}%` = '%{_p}%'"
+		set {_true} to true
 	else:
 		set {_uuid} to "%uuid of {_p}%"
-		writeFileSKY("Players.%{_variableName}%", "%{_value}%", "playerdata/%{_uuid}%")
+	#	writeFileSKY("Players.%{_variableName}%", "%{_value}%", "playerdata/%{_uuid}%")
 function chanceOf(Number: number) :: text:
 	set {_Sonuc} to 100/{_Number}
 	set {_random} to random integer from 1 to {_Sonuc}

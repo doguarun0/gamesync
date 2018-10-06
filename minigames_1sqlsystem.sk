@@ -1,4 +1,5 @@
 on load:
+	set {Version::sqlsystem} to "6ekim"
 	#
 	set {MySQLAPI::parties::tablo} to "Parties"
 	set {MySQLAPI::parties::user} to "PlayerUUID"

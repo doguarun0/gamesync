@@ -1,5 +1,5 @@
 on load:
-	set {Version::mysqlapi} to "0.1"
+	set {Version::mysqlapi} to "6ekim"
 	set {MySQLAPI::default::tablo} to "UsersREPU"
 	set {MySQLAPI::default::user} to "user_uuid"
 	set {MySQLAPI::default::default} to "(`user_uuid`, `user_name`, `rank`) VALUES ('{UUID}', '{PLAYER}', 'Default');"

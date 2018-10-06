@@ -1,6 +1,6 @@
 ﻿on load:
 	set {minigamesapi::game} to "SUPERSKYWARS"
-	set {minigamesapi::game_version} to "v023"
+	set {minigamesapi::game_version} to "6ekim"
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"

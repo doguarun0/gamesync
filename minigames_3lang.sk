@@ -1,5 +1,5 @@
 on load:
-	set {SW::Lang_Ver} to "0.7"
+	set {SW::Lang_Ver} to "6ekim"
 	set {SW::Messages::EN::No_Permission} to "§7You do not have permission for this."
 	set {SW::Messages::EN::Enter_Arena_Name} to "§7Enter the arena name."
 	set {SW::Messages::EN::Char_Error} to "§7This arena name contains unsupported character(s)."

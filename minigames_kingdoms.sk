@@ -1,7 +1,7 @@
 on load:
-	#
+	# captureleri kaydet
 	set {minigamesapi::game} to "KINGDOMS"
-	set {minigamesapi::game_version} to "v028"
+	set {minigamesapi::game_version} to "6ekim"
 	set {minigamesapi::shortnamegame} to "kingdoms"
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
@@ -688,7 +688,7 @@ on death of player:
 	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"	
 	set {_lang} to language of player
 	set {_kingdom} to checkFileSKY("Datas.Players-List.%uuid of victim%.Team", "arenas/%{_Arena}%") parsed as number
-	{_kingdom} is set
+	{_kingdom} is not "*"
 	set {_akingdom} to checkFileSKY("Datas.Players-List.%uuid of attacker%.Team", "arenas/%{_Arena}%")
 	{_akingdom} is not "*":
 		set {_x} to level of attacker 
@@ -696,6 +696,13 @@ on death of player:
 		set level of attacker to {_x}
 		set attacker's hunger to 20
 		broadcastServerKingdoms("Player_Killed", "{VICTIM}^%victim%~{ATTACKER}^%attacker%", true, "*", {_Arena})	
+		set {_killsGET} to getVariableSKY(attacker, "Kills") parsed as number
+		add 1 to {_killsGET}
+		setVariableSKY(attacker, "Kills", "%{_killsGET}%")
+		degerEkleSKY("Datas.Players-List.%uuid of attacker%.Kills", 1, "arenas/%{_Arena}%")
+	set {_deathsGET} to getVariableSKY(victim, "Deaths") parsed as number
+	add 1 to {_deathsGET}
+	setVariableSKY(victim, "Deaths", "%{_deathsGET}%")
 	set {_hp} to checkFileSKY("Datas.Players-List.%uuid of victim%.HP", "arenas/%{_Arena}%") parsed as number		
 	if {_hp} is greater than 0:
 		degerCikarSKY("Datas.Players-List.%uuid of victim%.HP", 1, "arenas/%{_Arena}%")
@@ -773,6 +780,10 @@ on break:
 				writeFileSKY("Datas.Kingdoms.%{_k}%.Status", "0", "arenas/%{_Arena}%")
 				set {_Towns::*} to configuration section "Datas.Towns" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 				set {_Time} to setTimeKG("%month%", "%day%", "%hour%", "%minute%", "%second+3%")
+				set {_value} to getVariableSKY(player, "CapturedNexus") parsed as number
+				add 1 to {_value}
+				setVariableSKY(player, "CapturedNexus", "%{_value}%")
+				degerEkleSKY("Datas.Players-List.%uuid of player%.CapturedNexus", 1, "arenas/%{_Arena}%")
 				size of {_Towns::*} is greater than 0:
 					loop {_Towns::*}:
 						set {_cb} to checkFileSKY("Datas.Towns.%loop-value%.Captured-By", "arenas/%{_Arena}%")
@@ -798,7 +809,11 @@ on break:
 						set {_Location} to location ({_x}, {_y}, {_z}) in world {_w}  
 						set block at block under {_Location} to "%{SW::Messages::Kingdom_Icon::%{_kingdom}%}%" parsed as material
 						broadcastServerKingdoms("ANVIL_BREAK", "*", true, "%{_k}%", {_Arena})
-						strike lightning effect at {_Location}
+						strike lightning effect at {_Location
+						set {_value} to getVariableSKY(player, "CapturedTown") parsed as number
+						add 1 to {_value}
+						setVariableSKY(player, "CapturedTown", "%{_value}%")
+						degerEkleSKY("Datas.Players-List.%uuid of player%.CapturedTown", 1, "arenas/%{_Arena}%")
 				set {_x} to checkFileSKY("Datas.Lobby.x", "maps/%{_CurrentMap}%") parsed as number
 				set {_y} to checkFileSKY("Datas.Lobby.y", "maps/%{_CurrentMap}%") parsed as number
 				set {_z} to checkFileSKY("Datas.Lobby.z", "maps/%{_CurrentMap}%") parsed as number
@@ -873,6 +888,10 @@ on break:
 					set block at block under location of event-block to "%{SW::Messages::Kingdom_Icon::%{_kingdom}%}%" parsed as material
 					play sound "AMBIENCE_THUNDER" to player and volume 1 with pitch 1
 					strike lightning effect at event-block's location
+					set {_value} to getVariableSKY(player, "CapturedTown") parsed as number
+					add 1 to {_value}
+					setVariableSKY(player, "CapturedTown", "%{_value}%")
+					degerEkleSKY("Datas.Players-List.%uuid of player%.CapturedTown", 1, "arenas/%{_Arena}%")
 			else:
 				set {_msg} to {SW::Messages::%{_lang}%::Capture_Wait_Timer}
 				replace all "{TIME}" with "%{_timer}%" in {_msg}
