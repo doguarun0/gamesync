@@ -1,5 +1,5 @@
 on load:
-	set {SW::Lang_Ver} to "6ekim"
+	set {SW::Lang_Ver} to "9ekim"
 	set {SW::Messages::EN::No_Permission} to "§7You do not have permission for this."
 	set {SW::Messages::EN::Enter_Arena_Name} to "§7Enter the arena name."
 	set {SW::Messages::EN::Char_Error} to "§7This arena name contains unsupported character(s)."
@@ -356,8 +356,6 @@ on load:
 	set {SW::Messages::EN::ItemShop_Cost} to "||&7Cost: &f{COST}"
 	set {SW::Messages::EN::No_Resource} to "&7You don't need enough resources to buy this."
 	set {SW::Messages::EN::Click_To_Quick_Buy_Menu} to "||&7Click to see quick buy."
-	set {SW::Messages::EN::ItemShop_Quick_Buy_Locked} to "&cQuick Buy Slot"
-	set {SW::Messages::EN::ItemShop_Quick_Buy_Locked_Lore} to "||&7Reach &fLevel {LVL} &7to unlock slot."
 	set {SW::Messages::EN::ItemShop_Type_0_Name::0} to "&eQuick Buy"
 	set {SW::Messages::EN::ItemShop_Type_0_Name::1} to "&eDefence"
 	set {SW::Messages::EN::ItemShop_Type_0_Name::2} to "&eAttack"
@@ -527,6 +525,11 @@ on load:
 	set {SW::Messages::EN::Reviving_2} to "&a✓"
 	set {SW::Messages::EN::Reviving_2_Title} to "&7&oyou have respawned again!"
 	set {SW::Messages::EN::ItemShop_Click_See} to "||||&eClick to check these items."
+	set {SW::Messages::EN::ItemShop_Quick_Buy_Slot} to "Quick Buy Slot"
+	set {SW::Messages::EN::ItemShop_Quick_Buy_Locked_Lore} to "||&7Reach &fLevel {LVL} &7to unlock slot."
+	set {SW::Messages::EN::ItemShop_Quick_Buy_Enable_Lore} to "||&7You can define items to the this slot||&7with clicking &fSHIFT + RIGHTCLICK&7."
+	set {SW::Messages::EN::ItemShop_Quick_Buy_Remove} to "&7&o'Click &f&oSHIFT + RIGHT CLICK &7&oto remove||&7&othis item from quick buy menu.'"
+	set {SW::Messages::EN::ItemShop_Quick_Buy_Add} to "&7&o'Click &f&oSHIFT + RIGHT CLICK &7&oto add||&7&othis item to quick buy menu.'"
 	#
 	set {SW::Messages::EN::Town_HP_Lore} to "&7Health: &7{HEALTH}&fx&c❤"
 	set {SW::Messages::EN::Town_Distance_Lore} to "&7Distance: &7{DIS} mt(s)"

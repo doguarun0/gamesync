@@ -1,7 +1,7 @@
 ﻿on load:
 	#
 	set {minigamesapi::game} to "BEDWARS"
-	set {minigamesapi::game_version} to "6ekim"
+	set {minigamesapi::game_version} to "10ekim"
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"
@@ -635,6 +635,8 @@ on death of player:
 				set {_plr} to "-%{_plr}%"
 			set {_rcp} to "%{_rcp}%%{_plr}%"
 		saveRecentPlayers(victim, {_rcp})
+		
+		xpAPI(victim, false)
 		#
 	else:
 		set {_timer} to 5
@@ -885,62 +887,6 @@ function itemShopPriceChecker(Player: player, Type: number, Slot: number) :: boo
 		return true
 	else:
 		return false	
-function itemShopBuy(Player: player, Type: number, Slot: number):
-	set {_UUID} to "%uuid of {_Player}%"
-	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
-	{_Arena} is not "*"
-	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
-	set {_lang} to language of {_Player}
-	set {_costText::*} to {SW::Messages::%{_lang}%::ItemShop_Type_%{_Type}%_Cost::%{_Slot}%} split at " "
-	set {_costFinder} to {_costText::2}
-	if {_costFinder} is "iron" or "hierro":
-		set {_ItemValue} to iron ingot
-	else if {_costFinder} is "gold" or "oro":
-		set {_ItemValue} to gold ingot
-	else if {_costFinder} is "diamond" or "diamante":
-		set {_ItemValue} to diamond
-	else if {_costFinder} is "emerald" or "esmeralda":
-		set {_ItemValue} to emerald
-	set {_amount} to {_costText::1} parsed as number
-	if number of {_ItemValue} in {_Player}'s inventory is greater or equal to {_amount}:
-		set {_i} to "%{_amount}% %{_ItemValue}%" parsed as material
-		playSoundSKY({_Player}, "NOTE_PLING", "NOTE_PLING", 1)
-		remove {_i} from {_Player}'s inventory
-		if {_Type} is not 1 or 2:
-			{_Type} is 3:
-				{_Slot} is 1
-				set {_Team} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%")
-				give 16 of {SW::Messages::Team_%{_Team}%_WoolColor} to {_Player}
-				stop
-			give {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%} to {_Player}
-			stop
-		else if {_Type} is 2:
-			slot 0 of {_Player}'s inventory is not air:
-				give slot 0 of {_Player}'s inventory to {_Player}
-				wait 1 ticks
-			set slot 0 of {_Player}'s inventory to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
-			stop
-		else if {_Type} is 1:
-			if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "helmet":
-				set {_Player}'s helmet to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
-				writeFileSKY("Datas.Players-List.%{_UUID}%.Helmet", "%{_Slot}%", "arenas/%{_Arena}%")
-				stop
-			else if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "chestplate":
-				set {_Player}'s chestplate to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
-				writeFileSKY("Datas.Players-List.%{_UUID}%.Chestplate", "%{_Slot}%", "arenas/%{_Arena}%")
-				stop
-			else if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "leggings":
-				set {_Player}'s leggings to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
-				writeFileSKY("Datas.Players-List.%{_UUID}%.Leggings", "%{_Slot}%", "arenas/%{_Arena}%")
-				stop
-			else if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "boots":
-				set {_Player}'s boots to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
-				writeFileSKY("Datas.Players-List.%{_UUID}%.Boots", "%{_Slot}%", "arenas/%{_Arena}%")
-				stop
-	else:
-		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::No_Resource}%" to {_Player}
-		playSoundSKY({_Player}, "NOTE_HARP", "NOTE_HARP", 1)
-		stop
 function itemShop(Player: player, Type: number):
 	set {_UUID} to "%uuid of {_Player}%"
 	
@@ -972,55 +918,160 @@ function itemShop(Player: player, Type: number):
 			format gui slot {_x} of {_Player} with {_item} named "%{SW::Messages::%{_lang}%::Glass_Notifier_1_1}%" with lore "%{SW::Messages::%{_lang}%::Glass_Notifier_1_2}%" 
 		set {_item} to {SW::Menu_Item}
 		add 1 to {_x}
+		
+
 	if {_Type} is 0:
+		set {_level} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%", true, "1") parsed as number
+		set {_loopTimes} to 14
 		set {_z} to 28
-		set {_item.1} to "101" parsed as material
-		set {_item.2} to "102" parsed as material
-		set {_slot} to 1
-		loop 14 times:
-			{_z} is 35:
-				add 2 to {_z}
-			set {_lore} to "%{SW::Messages::%{_lang}%::ItemShop_Quick_Buy_Locked_Lore}%"
-			replace all "{LVL}" with "%5 * {_slot}%" in {_lore}
-			format gui slot {_z} of {_Player} with {_item.1} named "%{SW::Messages::%{_lang}%::ItemShop_Quick_Buy_Locked}% ##%{_slot}%" with lore {_lore}
-			add 1 to {_z}
-			add 1 to {_slot}
-	else:	
+	else:
 		set {_z} to 28
 		loop 14 times:
 			{_z} is 35:
 				add 2 to {_z}
 			unformat gui slot {_z} of {_Player}
 			add 1 to {_z}
-		set {_x} to 28
-		loop size of {SW::Messages::ItemShop_Type_%{_Type}%_Item::*} times:
+		set {_z} to 28
+		set {_loopTimes} to size of {SW::Messages::ItemShop_Type_%{_Type}%_Item::*}
+		wait 2 ticks
+	set {_slot} to 1
+	loop {_loopTimes} times:
+		delete {_iname}
+		delete {_QBType}
+		delete {_QBSlot}
+		delete {_item}
+		{_z} is 35:
+			add 2 to {_z}
+		if {_Type} is 0:
+			set {_lore} to {SW::Messages::%{_lang}%::ItemShop_Quick_Buy_Enable_Lore}
+			set {_name} to "&a%{SW::Messages::%{_lang}%::ItemShop_Quick_Buy_Slot}%"
+			set {_item} to "102" parsed as material
+			{_slot} is not 1:
+				set {_needed} to 5 * {_slot}
+				{_level} < {_needed}:
+					set {_lore} to "%{SW::Messages::%{_lang}%::ItemShop_Quick_Buy_Locked_Lore}%"
+					replace all "{LVL}" with "%{_needed}%" in {_lore}
+					set {_name} to "&c%{SW::Messages::%{_lang}%::ItemShop_Quick_Buy_Slot}%"
+					set {_item} to "101" parsed as material
+			set {_QB.%{_slot}%} to checkFileSKY("Datas.Players-List.%{_UUID}%.Quick-Buy-Slot.%{_slot}%", "arenas/%{_Arena}%")
+			if {_QB.%{_slot}%} is not "*":
+				set {_QB.data::*} to {_QB.%{_slot}%} split at ","
+				set {_QBType} to {_QB.data::1} parsed as number
+				set {_QBSlot} to {_QB.data::2} parsed as number
+			else:
+				set {_iname} to "%coloured {_name}% ##%{_slot}%"
+		else:
+			set {_QBType} to {_Type}
+			set {_QBSlot} to loop-number
+		set {_item} to {SW::Messages::ItemShop_Type_%{_QBType}%_Item::%{_QBSlot}%}	
+		{_iname} is not set:
 			set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_No}
 			set {_buylore} to {SW::Messages::%{_lang}%::ItemShop_Click_No}
-			set {_r} to itemShopPriceChecker({_Player}, {_Type}, loop-number)
+			set {_r} to itemShopPriceChecker({_Player}, {_QBType}, {_QBSlot})
 			{_r} is true:
 				set {_prefix} to {SW::Messages::%{_lang}%::ItemShop_Prefix_Yes}
 				set {_buylore} to {SW::Messages::%{_lang}%::ItemShop_Click_Buy}
 			set {_c} to {SW::Messages::%{_lang}%::ItemShop_Cost}
-			set {_m} to {SW::Messages::%{_lang}%::ItemShop_Type_%{_Type}%_Cost::%loop-number%}
+			set {_m} to {SW::Messages::%{_lang}%::ItemShop_Type_%{_QBType}%_Cost::%{_QBSlot}%}
 			replace all "iron" with "%{SW::Messages::%{_lang}%::Text_Iron}%" in {_m}
 			replace all "gold" with "%{SW::Messages::%{_lang}%::Text_Gold}%" in {_m}
 			replace all "diamond" with "%{SW::Messages::%{_lang}%::Text_Diamond}%" in {_m}
 			replace all "emerald" with "%{SW::Messages::%{_lang}%::Text_Emerald}%" in {_m}
 			replace all "{COST}" with "%{_m}%" in {_c}
 			set {_lore} to "%{_c}%%{_buylore}%"
-			{_Type} is 1 or 2:
+			{_QBType} is 1 or 2:
 				set {_lore} to "%{_lore}%||%{SW::Messages::%{_lang}%::Cant_Lose_Death}%"
-			{_Type} is 1:
+			{_QBType} is 1:
 				set {_lore} to "%{_lore}%||%{SW::Messages::%{_lang}%::Comes_With_That}%"
-			format gui slot {_x} of {_Player} with {SW::Messages::ItemShop_Type_%{_Type}%_Item::%loop-number%} named "%{_prefix}%%uncolored {SW::Messages::%{_lang}%::ItemShop_Type_%{_Type}%_Name::%loop-number%}%" with lore "%{_lore}%" to run function itemShopBuy({_Player}, {_Type}, loop-number)
-			add "-%{_x}%-" to {_noGlass::*}
-			add 1 to {_x}
-		set {_x} to 45
-		loop 9 times:
-			format gui slot {_x} of {_Player} with {SW::Menu_Item} named " " with lore " " 
-			add 1 to {_x}
-				
-		
+			set {_iname} to "%{_prefix}%%uncolored {SW::Messages::%{_lang}%::ItemShop_Type_%{_QBType}%_Name::%{_QBSlot}%}%"	
+			if {_Type} is 0:
+				set {_lore} to "%{_lore}%||||%{SW::Messages::%{_lang}%::ItemShop_Quick_Buy_Remove}%"
+			else:
+				set {_lore} to "%{_lore}%||||%{SW::Messages::%{_lang}%::ItemShop_Quick_Buy_Add}%"
+		set {_babe} to true
+		format gui slot {_z} of {_Player} with {_item} named "%{_iname}%" with lore {_lore} to run function itemShopBuy({_Player}, {_QBType}, {_QBSlot}, {_Type}) using RMB action
+		format gui slot {_z} of {_Player} with {_item} named "%{_iname}%" with lore {_lore} to run function itemShopBuy({_Player}, {_QBType}, {_QBSlot}, {_Type}) using LMB action
+		format gui slot {_z} of {_Player} with {_item} named "%{_iname}%" with lore {_lore} to run function quickBuyDefine({_Player}, {_slot}, {_Type}, {_QBSlot}) using right mouse button with shift action	
+		add 1 to {_z}
+		add 1 to {_slot}
+function itemShopBuy(Player: player, Type: number, Slot: number, Control: number):
+	set {_UUID} to "%uuid of {_Player}%"
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
+	{_Arena} is not "*"
+	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+	set {_lang} to language of {_Player}
+	set {_costText::*} to {SW::Messages::%{_lang}%::ItemShop_Type_%{_Type}%_Cost::%{_Slot}%} split at " "
+	set {_costFinder} to {_costText::2}
+	if {_costFinder} is "iron" or "hierro":
+		set {_ItemValue} to iron ingot
+	else if {_costFinder} is "gold" or "oro":
+		set {_ItemValue} to gold ingot
+	else if {_costFinder} is "diamond" or "diamante":
+		set {_ItemValue} to diamond
+	else if {_costFinder} is "emerald" or "esmeralda":
+		set {_ItemValue} to emerald
+	set {_amount} to {_costText::1} parsed as number
+	itemShop({_Player}, {_Control})
+	if number of {_ItemValue} in {_Player}'s inventory is greater or equal to {_amount}:
+		set {_i} to "%{_amount}% %{_ItemValue}%" parsed as material
+		playSoundSKY({_Player}, "NOTE_PLING", "NOTE_PLING", 1)
+		remove {_i} from {_Player}'s inventory		
+		if {_Type} is not 1 or 2:
+			{_Type} is 3:
+				{_Slot} is 1
+				set {_Team} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%")
+				give 16 of {SW::Messages::Team_%{_Team}%_WoolColor} to {_Player}
+				stop
+			give {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%} to {_Player}
+			stop
+		else if {_Type} is 2:
+			slot 0 of {_Player}'s inventory is not air:
+				give slot 0 of {_Player}'s inventory to {_Player}
+				wait 1 ticks
+			set slot 0 of {_Player}'s inventory to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
+			stop
+		else if {_Type} is 1:
+			set {_Player}'s boots to {SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}
+			writeFileSKY("Datas.Players-List.%{_UUID}%.Boots", "%{_Slot}%", "arenas/%{_Arena}%")
+			if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "chain":		
+				writeFileSKY("Datas.Players-List.%{_UUID}%.Leggings", "chain", "arenas/%{_Arena}%")
+				set {_Player}'s leggings to chain leggings
+			else if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "iron":
+				writeFileSKY("Datas.Players-List.%{_UUID}%.Leggings", "iron", "arenas/%{_Arena}%")
+				set {_Player}'s leggings to iron leggings
+			else if "%{SW::Messages::ItemShop_Type_%{_Type}%_Item::%{_Slot}%}%" contains "diamond":
+				writeFileSKY("Datas.Players-List.%{_UUID}%.Leggings", "diamond", "arenas/%{_Arena}%")
+				set {_Player}'s leggings to diamond leggings
+			stop
+	else:
+		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::No_Resource}%" to {_Player}
+		playSoundSKY({_Player}, "NOTE_HARP", "NOTE_HARP", 1)
+		stop
+function quickBuyDefine(Player: player, Pos: number, QBType: number, QBSlot: number):
+	set {_UUID} to "%uuid of {_Player}%"
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
+	{_Arena} is not "*"
+	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+	set {_lang} to language of {_Player}
+	itemShop({_Player}, 0)
+	if {_QBType} is 0:
+		writeFileSKY("Datas.Players-List.%{_UUID}%.Quick-Buy-Slot.%{_Pos}%", "*", "arenas/%{_Arena}%")
+	else:
+		set {_level} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%", true, "1") parsed as number
+		set {_calc} to rounded down {_level}/5
+		set {_max} to 1
+		{_calc} is greater than 1:
+			set {_max} to {_calc}
+		{_max} is greater than 14:
+			set {_max} to 14
+		set {_found} to false
+		loop {_max} times:
+			checkFileSKY("Datas.Players-List.%{_UUID}%.Quick-Buy-Slot.%loop-number%", "arenas/%{_Arena}%") is "*"
+			writeFileSKY("Datas.Players-List.%{_UUID}%.Quick-Buy-Slot.%loop-number%", "%{_QBType}%,%{_QBSlot}%", "arenas/%{_Arena}%")
+			set {_found} to true
+			exit loop
+		{_found} is false
+		writeFileSKY("Datas.Players-List.%{_UUID}%.Quick-Buy-Slot.%{_max}%", "%{_QBType}%,%{_QBSlot}%", "arenas/%{_Arena}%")
 function teleportDelayAPI(Player: player):
 	set {_UUID} to "%uuid of {_Player}%"
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
@@ -1032,7 +1083,7 @@ function teleportDelayAPI(Player: player):
 	set {_tp} to checkFileSKY("Datas.Players-List.%{_UUID}%.TP", "arenas/%{_Arena}%")
 	{_tp} is "*"
 	writeFileSKY("Datas.Players-List.%{_UUID}%.TP", "true", "arenas/%{_Arena}%")
-	set {_time} to 5
+	set {_time} to 5 
 	set {_cl} to "&c"
 	set {_locControl} to {_Player}'s x-coord
 	while {_time} is not 0:

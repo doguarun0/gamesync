@@ -1,5 +1,5 @@
 on load:
-	set {Version::mysqlapi} to "6ekim"
+	set {Version::mysqlapi} to "10ekim"
 	set {MySQLAPI::default::tablo} to "UsersREPU"
 	set {MySQLAPI::default::user} to "user_uuid"
 	set {MySQLAPI::default::default} to "(`user_uuid`, `user_name`, `rank`) VALUES ('{UUID}', '{PLAYER}', 'Default');"
@@ -90,10 +90,8 @@ function degerOku(p: offline player, id: text, type: text, full: text, insert: b
 	{_result} is not set:
 		{_default} is not "NOVALUE":
 			{_insert} is true:
-				set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "%{_default}%"
-				replace all "{PLAYER}" with "%{_p}%" in {_full}
-				replace all "{UUID}" with "%{_uuid}%" in {_full}
 				savesql data id "%{_id}%" with full name "%{_full}%"
+				set yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml" to "%{_default}%"
 			set {_result} to {_default}
 	return "%{_result}%"
 function degerEkle(p: offline player, id: text, type: text, number: number, full: text):

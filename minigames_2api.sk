@@ -1,9 +1,51 @@
 on load:
-	set {minigamesapi::version} to "6ekim"
+	set {minigamesapi::version} to "11ekim"
 	set {minigamesapi::size::Solo} to 1
 	set {minigamesapi::size::Duo} to 2
 	set {minigamesapi::size::4x4} to 4
 	set {minigamesapi::size::6x6} to 6
+	#
+	set {MySQLAPI::leveling::tablo} to "UsersLEVELS"
+	set {MySQLAPI::leveling::user} to "user_uuid"
+	set {MySQLAPI::leveling::default} to "(`user_uuid`, `user_name`) VALUES ('{UUID}', '{PLAYER}');"
+	set {_read} to "CREATE TABLE IF NOT EXISTS `UsersLEVELS` (`user_uuid` varchar(255),`user_name` varchar(255),`superskywars_level` int(40) NOT NULL DEFAULT '1',`superskywars_exp` int(50) NOT NULL DEFAULT '0',`bedwars_level` int(40) NOT NULL DEFAULT '1',`bedwars_exp` int(50) NOT NULL DEFAULT '0',`kingdoms_level` int(40) NOT NULL DEFAULT '1',`kingdoms_exp` int(50) NOT NULL DEFAULT '0',UNIQUE KEY `user_uuid` (user_uuid),UNIQUE KEY `user_name` (`user_name`))"
+	execute unsafe {_read} in {sql1} 
+	#
+	set {SW::Leveling_Header} to "      &c&l&nMINECROWD&r"
+	set {SW::Messages::EN::Leveling_Progress} to "&0⇪ Progress:&r &8Level {LEVEL}"
+	set {SW::Messages::EN::Level_Up_Header} to "&0&lLEVEL UP! &r➔ &0LvL {LEVEL}"
+	set {SW::Messages::EN::Level_Up_Text} to "&fYou have been leveled up to level {LEVEL}!"
+	set {SW::Messages::EN::Leveling_Rank} to "&fBuying ranks will give you more EXP!"
+	set {SW::Messages::EN::Leveling_Total} to "   &0&lTotal: &2+{TOTAL} EXP"
+	set {SW::Messages::EN::Leveling_Total_Text} to "&fYou have gained from this game."
+	set {SW::Messages::EN::Objective_Label_1} to "⧁ Kill:"
+	set {SW::Messages::EN::Objective_Label_2} to "⧁ Break Bed:"
+	set {SW::Messages::EN::Objective_Label_3} to "⧁ Capture Nexus:"
+	set {SW::Messages::EN::Objective_Label_4} to "⧁ Capture Town:"
+	set {SW::Messages::EN::Objective_Label_5} to "⧁ Game Time:"
+	set {SW::Messages::EN::Objective_Label_6} to "⧁ Rank Multiplier:"
+	# BASE
+	set {SW::EXP::Base_XP_Win_true} to 10
+	set {SW::EXP::Base_XP_Win_false} to 3
+	set {SW::EXP::XP_Per_Seconds_Win_true} to 0.11
+	set {SW::EXP::XP_Per_Seconds_Win_false} to 0.08
+	set {SW::EXP::Formula_Main} to 300
+	set {SW::EXP::Multiplier_1} to 1
+	set {SW::EXP::Multiplier_vip} to 2
+	set {SW::EXP::Multiplier_elite} to 3
+	set {SW::EXP::Multiplier_hero} to 4
+	# SKYWARS
+	set {SW::EXP::Skywars_Kill_XP} to 15
+	set {SW::EXP::SKYWARS_Objectives} to "-1--5-"
+	# BEDWARS
+	set {SW::EXP::Bedwars_Kill_XP} to 1
+	set {SW::EXP::Bedwars_BreakBed_XP} to 15
+	set {SW::EXP::BEDWARS_Objectives} to "-1--2--5-"
+	# KINGDOMS 
+	set {SW::EXP::Kingdoms_Kill_XP} to 1
+	set {SW::EXP::Kingdoms_CaptureNexus_XP} to 15
+	set {SW::EXP::Kingdoms_CaptureTown_XP} to 5
+	set {SW::EXP::KINGDOMS_Objectives} to "-1--5--3--4-"
 function writeFileSKY(variableName: text, value: text, fileDir: text):
 	"%{_fileDir}%" contains "<none>":
 		stop
@@ -1591,6 +1633,142 @@ on command:
 	checkFileSKY("Players.Arena-Name", "playerdata/%uuid of player%") is not "*"
 	send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Disabled_Command}%" to player
 	cancel event
+function xpAPI(Player: player, Win: boolean):
+	set {_UUID} to "%uuid of {_Player}%"
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
+	{_Arena} is not "*"
+	set {_lang} to language of {_Player}
+	set {_totalEXP} to 0	
+	if {minigamesapi::game} is "SKYWARS":
+		set {_objective} to checkFileSKY("Datas.Players-List.%{_UUID}%.Kills", "arenas/%{_Arena}%") parsed as number
+		set {_value} to {SW::EXP::Skywars_Kill_XP}*{_objective}
+		set {_value} to rounded down {_value}
+		add {_value} to {_totalEXP}
+		add {_value} to {_exp.obj.1}
+	else if {minigamesapi::game} is "BEDWARS":
+		set {_kill} to checkFileSKY("Datas.Players-List.%{_UUID}%.Kills", "arenas/%{_Arena}%") parsed as number
+		set {_value} to {SW::EXP::Bedwars_Kill_XP}*{_kill}
+		set {_value} to rounded down {_value}
+		add {_value} to {_exp.obj.1}
+		add {_value} to {_totalEXP}
+		set {_beds} to checkFileSKY("Datas.Players-List.%{_UUID}%.BreakedBeds", "arenas/%{_Arena}%") parsed as number
+		set {_value} to {SW::EXP::Bedwars_BreakBed_XP}*{_beds}
+		set {_value} to rounded down {_value}
+		add {_value} to {_exp.obj.2}
+		add {_value} to {_totalEXP}
+	else if {minigamesapi::game} is "KINGDOMS":	
+		set {_kill} to checkFileSKY("Datas.Players-List.%{_UUID}%.Kills", "arenas/%{_Arena}%") parsed as number
+		set {_value} to {SW::EXP::Kingdoms_Kill_XP}*{_kill}
+		set {_value} to rounded down {_value}
+		add {_value} to {_exp.obj.1}
+		add {_value} to {_totalEXP}
+		set {_nexus} to checkFileSKY("Datas.Players-List.%{_UUID}%.CapturedNexus", "arenas/%{_Arena}%") parsed as number
+		set {_value} to {SW::EXP::Kingdoms_CaptureNexus_XP}*{_nexus}
+		set {_value} to rounded down {_value}
+		add {_value} to {_exp.obj.3}
+		add {_value} to {_totalEXP}
+		set {_town} to checkFileSKY("Datas.Players-List.%{_UUID}%.CapturedTown", "arenas/%{_Arena}%") parsed as number
+		set {_value} to {SW::EXP::Kingdoms_CaptureTown_XP}*{_town}
+		set {_value} to rounded down {_value}
+		add {_value} to {_exp.obj.4}
+		add {_value} to {_totalEXP}
+	set {_alltime} to {SW::GameMinutes}*60
+	set {_time} to checkFileSKY("Datas.Current-Time", "arenas/%{_Arena}%") parsed as number
+	set {_remain} to {_alltime}-{_time}
+	set {_timeExp1} to {_remain}*{SW::EXP::XP_Per_Seconds_Win_%{_Win}%}
+	add rounded down {_timeExp1} to {_exp.obj.5}
+	set {_timeExp} to {_timeExp1}+{SW::EXP::Base_XP_Win_%{_Win}%}
+	add {_timeExp} to {_totalEXP}	
+	set {_multi} to 1
+	set {_rutbe} to degerOku({_Player}, "default", "rank", "%replaceMessage({_Player}, {MySQLAPI::default::default})%", false, "default") to all lower case
+	{_rutbe} is "vip" or "elite" or "hero": 
+		set {_totalEXP} to {_totalEXP}*{SW::EXP::Multiplier_%{_rutbe}%}
+		set {_multi} to {SW::EXP::Multiplier_%{_rutbe}%}
+	set {_totalEXP} to rounded down {_totalEXP} 	
+		
+	set {_level} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%", true, "1") parsed as number
+	set {_exp} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%", true, "0") parsed as number
+	degerEkle({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", {_totalEXP}, "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
+	wait 1 tick
+	
+	
+	add {_totalEXP} to {_exp}
+	
+	set {_formula} to {SW::EXP::Formula_Main}*2 * {_level}+1
+	
+	set {_msg} to {SW::Messages::%{_lang}%::Leveling_Progress}
+	replace all "{LEVEL}" with "%{_level}%" in {_msg}
+		
+	set {_1} to a new text component with "%{_msg}%"  		
+	set {_1lore} to "&f%{_exp}%/%{_formula}% ➜ LvL %{_level}+1%"
+	set {_normalCol} to "&8"
+	{_exp} is greater or equal to {_formula}: 
+		degerEkle({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", 1, "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
+		degerAyarla({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", "0", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
+		set {_msg} to {SW::Messages::%{_lang}%::Level_Up_Header}
+		replace all "{LEVEL}" with "%{_level}+1%" in {_msg}
+		set {_1} to a new text component with "%{_msg}%"  
+		set {_msg} to {SW::Messages::%{_lang}%::Level_Up_Text}
+		replace all "{LEVEL}" with "%{_level}+1%" in {_msg}
+		set {_1lore} to "%{_msg}%"
+		set {_normalCol} to "&0"
+		
+		
+	if {_exp} is between 0 and 100000:
+		set {_s} to {_exp}*100
+		set {_r} to rounded {_s}/{_formula}
+		set {_l} to {_r}/10
+		set {_lore} to ""
+		loop {_l} times:
+			set {_lore} to "%{_lore}%%coloured {_normalCol}%⬛"
+		set {_k} to 10-{_l}
+		loop {_k} times:
+			set {_lore} to "%{_lore}%%coloured {_normalCol}%⬜"		
+		{_r} is greater than 100:
+			set {_r} to 100		
+			set {_lore} to ""
+			loop 10 times:
+				set {_lore} to "%{_lore}%%coloured {_normalCol}%⬛"	
+	else:
+		set {_lore} to "   &4- error! -"
+	set {_typeN} to ""
+	set {_prefix} to "    "
+	{_r} is not 100:
+		set {_typeN} to "(%%%{_r}%)"
+		set {_prefix} to " "
+
+	set {_book} to a new book
+	add text component coloured "%{SW::Leveling_Header}%" to {_components::*}
+	add text component coloured "%nl%%nl%" to {_components::*}
+	add {_1} to {_components::*}
+	add text component coloured "%nl%%nl%" to {_components::*}
+	
+	set {_2} to a new text component with "%{_prefix}%%{_lore}% %{_typeN}%"  
+	add hover event with action SHOW_TEXT with text "%{_1lore}%" to text component {_2}
+	add {_2} to {_components::*}
+	add text component coloured "%nl%" to {_components::*}
+	add text component coloured "" to {_components::*}
+	
+	add text component coloured "%nl%" to {_components::*}
+	loop 5 times:
+		{SW::EXP::%{minigamesapi::game}%_Objectives} contains "-%loop-number%-"
+		add text component coloured "&0%{SW::Messages::%{_lang}%::Objective_Label_%loop-number%}% &2+%{_exp.obj.%loop-number%}% EXP%nl%" to {_components::*}
+	set {_3} to a new text component with "&0%{SW::Messages::%{_lang}%::Objective_Label_6}% &2x%{_multi}%%nl%"  	
+	add hover event with action SHOW_TEXT with text "%{SW::Messages::%{_lang}%::Leveling_Rank}%" to text component {_3}
+	add {_3} to {_components::*}
+	add text component coloured "%nl%%nl%" to {_components::*}
+	
+	set {_msg} to {SW::Messages::%{_lang}%::Leveling_Total}
+	replace all "{TOTAL}" with "%{_totalEXP}%" in {_msg}
+	
+	set {_res} to a new text component with "%{_msg}%"  
+	add text component coloured "%nl%" to {_components::*}
+	add hover event with action SHOW_TEXT with text "%{SW::Messages::%{_lang}%::Leveling_Total_Text}%" to text component {_res}
+	add {_res} to {_components::*}
+	
+	add text component coloured "" to {_components::*}
+	add text component {_components::*} to book {_book}
+	open book {_book} to {_Player}	
 function winMatch(Arena: text):
 	set {_Mode} to checkFileSKY("Datas.Type", "arenas/%{_Arena}%") 
 	checkFileSKY("Datas.Status", "arenas/%{_Arena}%")  is "2"
@@ -1629,6 +1807,8 @@ function winMatch(Arena: text):
 			set {_winsGET} to getVariableSKY({_Player}, "Wins") parsed as number
 			add 1 to {_winsGET}
 			setVariableSKY({_Player}, "Wins", "%{_winsGET}%")
+			
+			xpAPI({_Player}, true)
 			
 			#Recent Players
 			set {_rcp} to ""
@@ -1826,12 +2006,11 @@ function joinGame(PlayerName: player, BungeeArena: text):
 		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Youre_Ingame}%" to {_PlayerName}	
 		bungeeConnector({_PlayerName}, "%{SW::Messages::%{_lang}%::Youre_Ingame}%", "0")
 on join:
-	writeFileSKY("Players.Player-Name", "%player%", "playerdata/%uuid of player%")
-	writeFileSKY("Players.Last-Login", "%now%", "playerdata/%uuid of player%")
 	player has a skoreboard:
 		delete skoreboard for player
 	{SW::Bungee_Mode} is "true"	 
 	set join message to ""
+	refreshsqldata "%player%" with id "leveling"
 	set {_BungeeArena} to {SW::Bungee_Arena}
 	file "plugins/%{minigamesapi::game}%/arenas/%{_BungeeArena}%.yml" exists
 	{_BungeeArena} is not "*"
