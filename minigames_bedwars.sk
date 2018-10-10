@@ -1,7 +1,7 @@
 ﻿on load:
 	#
 	set {minigamesapi::game} to "BEDWARS"
-	set {minigamesapi::game_version} to "10ekim"
+	set {minigamesapi::game_version} to "11ekim"
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"
@@ -1259,6 +1259,12 @@ on damage of villager:
 	cancel event
 on rightclick with eye of ender:
 	teleportDelayAPI(player)	
+on drop:
+	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of player%")
+	{_Arena} is not "*"
+	player has permission "minigameapi.admin":
+		stop
+	cancel event
 on damage:
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of victim%")
 	if {_Arena} is not "*":
