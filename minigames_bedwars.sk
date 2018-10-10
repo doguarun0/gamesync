@@ -530,7 +530,6 @@ function startGame(Arena: text, Type: text):
 		set {_no} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%") parsed as number
 		playSoundSKY({_player}, "NOTE_PLING", "NOTE_PLING", 1)
 		send title "%{SW::Messages::%{_lang}%::Title_Game_Started}%" with subtitle "%{SW::Messages::%{_lang}%::SubTitle_Game_Started}%" for 5 seconds to {_Player}	
-		apply potion of resistance of tier 10 to {_Player} for 6 seconds
 		set level of {_Player} to 0
 		clear {_Player}'s inventory
 		scoreboardAPI({_Player}) 
@@ -1452,6 +1451,8 @@ on load:
 	loop {_arenas::*}:
 		set {_file} to "%loop-value%"
 		replace all ".yml" with "" in {_file}	
-		#debugArena("%{_file}%", "time")	
+		debugArena("%{_file}%", "time")	
 		wait 1 seconds
 	#refreshValuesSQL("2")
+on explode:
+	cancel event
