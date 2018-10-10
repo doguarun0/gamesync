@@ -8,13 +8,13 @@ on load:
 	#
 	# Minigames API MYSQL
 	{minigamesapi::shortnamegame} is set:
-		set {MySQLAPI::minigamesapi::tablo} to "%{minigamesapi::shortnamegame}%_stats"
-		set {MySQLAPI::minigamesapi::user} to "user_uuid"
-		set {MySQLAPI::minigamesapi::default} to "(`%{MySQLAPI::minigamesapi::user}%`, `user_name`) VALUES ('{UUID}', '{PLAYER}');"
+		set {MySQLAPI::%{minigamesapi::shortnamegame}%::tablo} to "%{minigamesapi::shortnamegame}%_stats"
+		set {MySQLAPI::%{minigamesapi::shortnamegame}%::user} to "user_uuid"
+		set {MySQLAPI::%{minigamesapi::shortnamegame}%::default} to "(`%{MySQLAPI::%{minigamesapi::shortnamegame}%::user}%`, `user_name`) VALUES ('{UUID}', '{PLAYER}');"
 		set {_stats.bedwars} to ",`BreakedBeds` int(50) NOT NULL DEFAULT '0'"
 		set {_stats.kingdoms} to ",`CapturedNexus` int(50) NOT NULL DEFAULT '0',`CapturedTown` int(50) NOT NULL DEFAULT '0'"
 		set {_stats.skywars} to ",`Kits` int(50) NOT NULL DEFAULT '0',`Credits` int(50) NOT NULL DEFAULT '0'"
-		set {_read} to "CREATE TABLE IF NOT EXISTS `%{MySQLAPI::minigamesapi::tablo}%` (`%{MySQLAPI::minigamesapi::user}%` varchar(255),`user_name` varchar(255),`Kills` int(40) NOT NULL DEFAULT '0',`Deaths` int(50) NOT NULL DEFAULT '0',`Played` int(40) NOT NULL DEFAULT '0',`Wins` int(40) NOT NULL DEFAULT '0'%{_stats.%{minigamesapi::shortnamegame}%}%,UNIQUE KEY `user_uuid` (user_uuid),UNIQUE KEY `user_name` (`user_name`))"
+		set {_read} to "CREATE TABLE IF NOT EXISTS `%{MySQLAPI::%{minigamesapi::shortnamegame}%::tablo}%` (`%{MySQLAPI::%{minigamesapi::shortnamegame}%::user}%` varchar(255),`user_name` varchar(255),`Kills` int(40) NOT NULL DEFAULT '0',`Deaths` int(50) NOT NULL DEFAULT '0',`Played` int(40) NOT NULL DEFAULT '0',`Wins` int(40) NOT NULL DEFAULT '0'%{_stats.%{minigamesapi::shortnamegame}%}%,UNIQUE KEY `user_uuid` (user_uuid),UNIQUE KEY `user_name` (`user_name`))"
 		execute unsafe {_read} in {sql1} 
 	#
 	# Leveling MYSQL
@@ -733,8 +733,8 @@ function PageAPIGame(Player: player, Type: text, page: number):
 			add {_ID} to {_Variables::*}
 	else if {_Type} is "1" or "5":
 		{_Type} is "1":
-			set {_CreditsPL} to degerOku({_Player}, "minigamesapi", "Credits", "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%", true, "0") parsed as number
-			set {_KitsPL} to degerOku({_Player}, "minigamesapi", "Kits", "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%", true, "*")
+			set {_CreditsPL} to degerOku({_Player}, "%{minigamesapi::shortnamegame}%", "Credits", "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%", true, "0") parsed as number
+			set {_KitsPL} to degerOku({_Player}, "%{minigamesapi::shortnamegame}%", "Kits", "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%", true, "*")
 		set {_Variables::*} to configuration section "Kits" get of "plugins/%{minigamesapi::game}%/kits.yml"
 	else if {_Type} is "2":
 		loop 15 times:
@@ -860,10 +860,10 @@ function PageAPIGame(Player: player, Type: text, page: number):
 						if {_Arena} is not "*":	
 							set {_Kit} to checkFileSKY("Datas.Players-List.%{_uuid}%.Kit", "arenas/%{_Arena}%") 
 							if "%{_Kit}%" is not "%{_target}%":	
-								set {_CreditsPL} to degerOku({_Player}, "minigamesapi", "Credits", "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%", true, "0") parsed as number
+								set {_CreditsPL} to degerOku({_Player}, "%{minigamesapi::shortnamegame}%", "Credits", "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%", true, "0") parsed as number
 								{_CreditsPL} is not set:
 									set {_CreditsPL} to 0
-								set {_KitsPL} to degerOku({_Player}, "minigamesapi", "Kits", "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%", true, "*")
+								set {_KitsPL} to degerOku({_Player}, "%{minigamesapi::shortnamegame}%", "Kits", "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%", true, "*")
 								if {_KitsPL} doesn't contain "%{_target}%":
 									set {_Kit.Cost} to checkFileSKY("Kits.%{_target}%.Cost", "kits") parsed as number
 									{_Kit.Cost} is not set:
@@ -878,14 +878,14 @@ function PageAPIGame(Player: player, Type: text, page: number):
 												{_KitsPL} is "*":
 													set {_KitsPL} to ""
 												set {_KitsPL} to "%{_target}%,%{_KitsPL}%"
-												degerAyarla({_Player}, "minigamesapi", "Kits", "%{_KitsPL}%", "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%")
+												degerAyarla({_Player}, "%{minigamesapi::shortnamegame}%", "Kits", "%{_KitsPL}%", "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
 												writeFileSKY("Datas.Players-List.%{_uuid}%.Kit", "%{_target}%", "arenas/%{_Arena}%")	
 												set {_Name} to checkFileSKY("Kits.%{_target}%.Name", "kits")
 												set {_msg} to {SW::Messages::%{_lang}%::Kit_Bought}
 												replace all "{KIT}" with "%{_Name}%" in {_msg}
 												replace all "{COST}" with "%{_Kit.Cost}%" in {_msg}
 												send "%{SW::Prefix}% %{_msg}%" to {_Player}
-												degerCikar({_Player}, "minigamesapi", "Credits", {_Kit.Cost}, "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%")
+												degerCikar({_Player}, "%{minigamesapi::shortnamegame}%", "Credits", {_Kit.Cost}, "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
 												stop
 											else:
 												send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Not_Enough_Credits}%" to {_Player}
@@ -1798,7 +1798,7 @@ function winMatch(Arena: text):
 			replace all "{KILLS}" with "%{_Kills::%loop-value%}%" in {_msg}
 			set {_UUID} to "%uuid of {_Player}%"
 			
-			degerEkle({_Player}, "minigamesapi", "Wins", 1, "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%")
+			degerEkle({_Player}, "%{minigamesapi::shortnamegame}%", "Wins", 1, "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
 			
 			xpAPI({_Player}, true)
 			
@@ -1823,7 +1823,7 @@ function winMatch(Arena: text):
 	loop {_RecentPlayers::*}:
 		delete {_Player}
 		set {_Player} to "%loop-value%" parsed as offline player
-		degerEkle({_Player}, "minigamesapi", "Played", 1, "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%")
+		degerEkle({_Player}, "%{minigamesapi::shortnamegame}%", "Played", 1, "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
 	writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")	
 function leaveGame(PlayerName: player, boolean: boolean):
 	set {_UUID} to "%uuid of {_PlayerName}%"

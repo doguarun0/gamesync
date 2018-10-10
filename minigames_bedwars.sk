@@ -591,13 +591,13 @@ on death of player:
 	else:
 		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Died_With_Bed}%" to victim	
 	set {_a} to attacker
-	degerEkle(victim, "minigamesapi", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::minigamesapi::default})%")
+	degerEkle(victim, "%{minigamesapi::shortnamegame}%", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
 	set {_KillsV} to a value "Datas.Players-List.%uuid of victim%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
 	set {_attackerr} to checkFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "arenas/%{_Arena}%")
 	if {_attackerr} is not "*":
 		set {_a} to {_attackerr} parsed as player
 		set {_auuid} to "%uuid of {_a}%"
-		degerEkle({_a}, "minigamesapi", "Kills", 1, "%replaceMessage({_a}, {MySQLAPI::minigamesapi::default})%")
+		degerEkle({_a}, "%{minigamesapi::shortnamegame}%", "Kills", 1, "%replaceMessage({_a}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
 		degerEkleSKY("Datas.Players-List.%{_auuid}%.Kills", 1, "arenas/%{_Arena}%")
 		if {_TeamStatus} is not "*": 	
 			sendMessageArena("%{_Arena}%", "Death_Type_Killed_FinalKill", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
@@ -777,7 +777,7 @@ on break:
 				broadcast ""
 				broadcastServer("Bed_Destroy", "{BY}^%player%~{TEAM}^%{SW::Messages::%{_lang}%::Team_%{_name}%_Name}%", false)	
 				broadcast ""				
-				degerEkle(player, "minigamesapi", "BreakedBeds", 1, "%replaceMessage(player, {MySQLAPI::minigamesapi::default})%")
+				degerEkle(player, "%{minigamesapi::shortnamegame}%", "BreakedBeds", 1, "%replaceMessage(player, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
 				degerEkleSKY("Datas.Players-List.%uuid of player%.BreakedBeds", 1, "arenas/%{_Arena}%")
 				{_found} is false:
 					size of {_PlayerList::*} is 1

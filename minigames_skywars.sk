@@ -678,7 +678,7 @@ on death of player:
 	clear victim's inventory
 	set level of victim to 0
 	set {_a} to attacker
-	degerEkle(victim, "minigamesapi", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::minigamesapi::default})%")
+	degerEkle(victim, "%{minigamesapi::shortnamegame}%", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
 	send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Died}%" to victim		
 	set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 	set {_KillsV} to a value "Datas.Players-List.%uuid of victim%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
@@ -687,7 +687,7 @@ on death of player:
 	if {_attackerr} is not "*" or "%victim%":
 		set {_a} to {_attackerr} parsed as player
 		set {_auuid} to "%uuid of {_a}%"
-		degerEkle({_a}, "minigamesapi", "Kills", 1, "%replaceMessage({_a}, {MySQLAPI::minigamesapi::default})%")
+		degerEkle({_a}, "%{minigamesapi::shortnamegame}%", "Kills", 1, "%replaceMessage({_a}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
 		degerEkleSKY("Datas.Players-List.%{_auuid}%.Kills", 1, "arenas/%{_Arena}%")
 		sendMessageArena("%{_Arena}%", "Death_Type_Killed", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
 	else:

@@ -141,4 +141,5 @@ function degerSil(p: offline player, id: text, type: text):
 on join:
 	refreshsqldata "%player%" with id "default"
 on quit:
+	file "plugins/Minecrowd/temp-datas/%player%.yml" exists
 	delete file "plugins/Minecrowd/temp-datas/%player%.yml"
