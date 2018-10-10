@@ -1,6 +1,6 @@
 ﻿on load:
-	set {minigamesapi::game} to "SUPERSKYWARS"
-	set {minigamesapi::game_version} to "6ekim"
+	set {minigamesapi::game} to "SKYWARS"
+	set {minigamesapi::game_version} to "10ekim"
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"
@@ -618,11 +618,7 @@ function startGame(Arena: text, Type: text):
 		set {_UUID} to "%loop-index%"
 		set {_lang} to language of {_Player}
 		playSoundSKY({_player}, "BLOCK_NOTE_PLING", "NOTE_PLING", 1)
-		set {_playedGET} to getVariableSKY({_player}, "Played") parsed as number
-		add 1 to {_playedGET}
-		setVariableSKY({_player}, "Played", "%{_playedGET}%")
-		{_Titles} is "true":
-			send title "%{SW::Messages::%{_lang}%::Title_Game_Started}%" with subtitle "%{SW::Messages::%{_lang}%::SubTitle_Game_Started}%" for 5 seconds to {_Player}	
+		send title "%{SW::Messages::%{_lang}%::Title_Game_Started}%" with subtitle "%{SW::Messages::%{_lang}%::SubTitle_Game_Started}%" for 5 seconds to {_Player}	
 		apply potion of resistance of tier 10 to {_Player} for 6 seconds
 		set level of {_Player} to 0
 		clear {_Player}'s inventory
@@ -682,9 +678,7 @@ on death of player:
 	clear victim's inventory
 	set level of victim to 0
 	set {_a} to attacker
-	set {_deathsGET} to getVariableSKY(victim, "Deaths") parsed as number
-	add 1 to {_deathsGET}
-	setVariableSKY(victim, "Deaths", "%{_deathsGET}%")
+	degerEkle(victim, "minigamesapi", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::minigamesapi::default})%")
 	send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Died}%" to victim		
 	set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 	set {_KillsV} to a value "Datas.Players-List.%uuid of victim%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
@@ -693,9 +687,7 @@ on death of player:
 	if {_attackerr} is not "*" or "%victim%":
 		set {_a} to {_attackerr} parsed as player
 		set {_auuid} to "%uuid of {_a}%"
-		set {_killsGET} to getVariableSKY({_a}, "Kills") parsed as number
-		add 1 to {_killsGET}
-		setVariableSKY({_a}, "Kills", "%{_killsGET}%")
+		degerEkle({_a}, "minigamesapi", "Kills", 1, "%replaceMessage({_a}, {MySQLAPI::minigamesapi::default})%")
 		degerEkleSKY("Datas.Players-List.%{_auuid}%.Kills", 1, "arenas/%{_Arena}%")
 		sendMessageArena("%{_Arena}%", "Death_Type_Killed", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
 	else:
@@ -731,46 +723,9 @@ on death of player:
 	{_Status} is "2"
 	set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 	size of {_PlayerList::*} is less or equal to {minigamesapi::size::%{_Mode}%}
-	writeFileSKY("Datas.Status", "3", "arenas/%{_Arena}%")	
-	{_Mode} is not "Solo":
-		loop {_PlayerList::*}:
-			set {_Player.lv} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
-			set {_lv} to "%{_Player.lv}%" parsed as player
-			set {_party} to checkFileSKY("Datas.Players-List.%loop-value%.HasParty", "arenas/%{_Arena}%")
-			{_default} is not set:
-				set {_default} to {_party}
-			{_party} is not {_default}:
-				stop
-	set {_all} to 0
-	loop {_PlayerList::*}:
-		set {_Player::%loop-value%} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
-		set {_Kills::%loop-value%} to a value "Datas.Players-List.%loop-value%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
-		add {_Kills::%loop-value%} to {_all}
-		{_party} is not set:
-			set {_party} to {_Player::%loop-value%}
-	size of {_Player::*} > 0:
-		broadcastServer("PartyWinText", "{WINNER}^%{_party}%~{ARENA}^%{_Arena}%~{KILLS}^%{_all}%", true)		
-		loop {_Player::*}:
-			delete {_Player}
-			set {_Player} to "%loop-value%" parsed as offline player
-			set {_msg} to {SW::Messages::%{_lang}%::PartyWin_List}
-			replace all "{NUMBER}" with "%loop-index%" in {_msg}
-			replace all "{PLAYER}" with "%{_Player}%" in {_msg}
-			replace all "{KILLS}" with "%{_Kills::%loop-value%}%" in {_msg}
-			set {_UUID} to "%uuid of {_Player}%"
-			set {_winsGET} to getVariableSKY({_Player}, "Wins") parsed as number
-			add 1 to {_winsGET}
-			setVariableSKY({_Player}, "Wins", "%{_winsGET}%")
-			loop 10 times:
-				launch "BALL_LARGE" firework at {_Player} timed 1 coloured aqua
-				launch "BALL_LARGE" firework at {_Player} timed 1 coloured red
-				launch "BALL_LARGE" firework at {_Player} timed 1 coloured black
-				wait 6 ticks
-			{_Titles} is "true":
-				sendTitleArena("%{_Arena}%", "Title_GameFinished", "*", "SubTitle_Win", "{WINNER}^%{_party}%")
-				wait 5 ticks
-				send title "&7%{SW::Messages::%{_lang}%::Title_YouWin}%" with subtitle "%{SW::Messages::%{_lang}%::SubTitle_YouWin}%" for 4 seconds to {_Player}
-		wait 5 seconds
+	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
+	winMatch({_Arena})
+	wait 5 seconds
 	writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")	
 	wait 1 ticks
 	debugArena("%{_Arena}%", "win")

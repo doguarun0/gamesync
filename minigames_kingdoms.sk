@@ -360,9 +360,6 @@ function startGame(Arena: text, Type: text):
 		set {_lang} to language of {_Player}
 		set {_no} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%") parsed as number
 		playSoundSKY({_player}, "NOTE_PLING", "NOTE_PLING", 1)
-		set {_playedGET} to getVariableSKY({_player}, "Played") parsed as number
-		add 1 to {_playedGET}
-		setVariableSKY({_player}, "Played", "%{_playedGET}%")
 		send title "%{SW::Messages::%{_lang}%::Title_Game_Started}%" with subtitle "%{SW::Messages::%{_lang}%::SubTitle_Game_Started}%" for 5 seconds to {_Player}	
 		apply potion of resistance of tier 10 to {_Player} for 6 seconds
 		set level of {_Player} to 0
@@ -697,13 +694,11 @@ on death of player:
 		set level of attacker to {_x}
 		set attacker's hunger to 20
 		broadcastServerKingdoms("Player_Killed", "{VICTIM}^%victim%~{ATTACKER}^%attacker%", true, "*", {_Arena})	
-		set {_killsGET} to getVariableSKY(attacker, "Kills") parsed as number
-		add 1 to {_killsGET}
-		setVariableSKY(attacker, "Kills", "%{_killsGET}%")
+		
+		degerEkle(attacker, "minigamesapi", "Kills", 1, "%replaceMessage(attacker, {MySQLAPI::minigamesapi::default})%")
+		
 		degerEkleSKY("Datas.Players-List.%uuid of attacker%.Kills", 1, "arenas/%{_Arena}%")
-	set {_deathsGET} to getVariableSKY(victim, "Deaths") parsed as number
-	add 1 to {_deathsGET}
-	setVariableSKY(victim, "Deaths", "%{_deathsGET}%")
+	degerEkle(victim, "minigamesapi", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::minigamesapi::default})%")
 	set {_hp} to checkFileSKY("Datas.Players-List.%uuid of victim%.HP", "arenas/%{_Arena}%") parsed as number		
 	if {_hp} is greater than 0:
 		degerCikarSKY("Datas.Players-List.%uuid of victim%.HP", 1, "arenas/%{_Arena}%")
@@ -781,9 +776,7 @@ on break:
 				writeFileSKY("Datas.Kingdoms.%{_k}%.Status", "0", "arenas/%{_Arena}%")
 				set {_Towns::*} to configuration section "Datas.Towns" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 				set {_Time} to setTimeKG("%month%", "%day%", "%hour%", "%minute%", "%second+3%")
-				set {_value} to getVariableSKY(player, "CapturedNexus") parsed as number
-				add 1 to {_value}
-				setVariableSKY(player, "CapturedNexus", "%{_value}%")
+				degerEkle(player, "minigamesapi", "CapturedNexus", 1, "%replaceMessage(player, {MySQLAPI::minigamesapi::default})%")
 				degerEkleSKY("Datas.Players-List.%uuid of player%.CapturedNexus", 1, "arenas/%{_Arena}%")
 				size of {_Towns::*} is greater than 0:
 					loop {_Towns::*}:
@@ -811,9 +804,7 @@ on break:
 						set block at block under {_Location} to "%{SW::Messages::Kingdom_Icon::%{_kingdom}%}%" parsed as material
 						broadcastServerKingdoms("ANVIL_BREAK", "*", true, "%{_k}%", {_Arena})
 						strike lightning effect at {_Location
-						set {_value} to getVariableSKY(player, "CapturedTown") parsed as number
-						add 1 to {_value}
-						setVariableSKY(player, "CapturedTown", "%{_value}%")
+						degerEkle(player, "minigamesapi", "CapturedTown", 1, "%replaceMessage(player, {MySQLAPI::minigamesapi::default})%")
 						degerEkleSKY("Datas.Players-List.%uuid of player%.CapturedTown", 1, "arenas/%{_Arena}%")
 				set {_x} to checkFileSKY("Datas.Lobby.x", "maps/%{_CurrentMap}%") parsed as number
 				set {_y} to checkFileSKY("Datas.Lobby.y", "maps/%{_CurrentMap}%") parsed as number
@@ -888,10 +879,8 @@ on break:
 					refreshMineField({_Arena}, {_town}, false)
 					set block at block under location of event-block to "%{SW::Messages::Kingdom_Icon::%{_kingdom}%}%" parsed as material
 					play sound "AMBIENCE_THUNDER" to player and volume 1 with pitch 1
-					strike lightning effect at event-block's location
-					set {_value} to getVariableSKY(player, "CapturedTown") parsed as number
-					add 1 to {_value}
-					setVariableSKY(player, "CapturedTown", "%{_value}%")
+					strike lightning effect at event-block's location		
+					degerEkle(player, "minigamesapi", "CapturedTown", 1, "%replaceMessage(player, {MySQLAPI::minigamesapi::default})%")
 					degerEkleSKY("Datas.Players-List.%uuid of player%.CapturedTown", 1, "arenas/%{_Arena}%")
 			else:
 				set {_msg} to {SW::Messages::%{_lang}%::Capture_Wait_Timer}

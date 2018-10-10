@@ -529,9 +529,6 @@ function startGame(Arena: text, Type: text):
 		set {_lang} to language of {_Player}
 		set {_no} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%") parsed as number
 		playSoundSKY({_player}, "NOTE_PLING", "NOTE_PLING", 1)
-		set {_playedGET} to getVariableSKY({_player}, "Played") parsed as number
-		add 1 to {_playedGET}
-		setVariableSKY({_player}, "Played", "%{_playedGET}%")
 		send title "%{SW::Messages::%{_lang}%::Title_Game_Started}%" with subtitle "%{SW::Messages::%{_lang}%::SubTitle_Game_Started}%" for 5 seconds to {_Player}	
 		apply potion of resistance of tier 10 to {_Player} for 6 seconds
 		set level of {_Player} to 0
@@ -594,17 +591,13 @@ on death of player:
 	else:
 		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Died_With_Bed}%" to victim	
 	set {_a} to attacker
-	set {_deathsGET} to getVariableSKY(victim, "Deaths") parsed as number
-	add 1 to {_deathsGET}
-	setVariableSKY(victim, "Deaths", "%{_deathsGET}%")
+	degerEkle(victim, "minigamesapi", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::minigamesapi::default})%")
 	set {_KillsV} to a value "Datas.Players-List.%uuid of victim%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
 	set {_attackerr} to checkFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "arenas/%{_Arena}%")
 	if {_attackerr} is not "*":
 		set {_a} to {_attackerr} parsed as player
 		set {_auuid} to "%uuid of {_a}%"
-		set {_killsGET} to getVariableSKY({_a}, "Kills") parsed as number
-		add 1 to {_killsGET}
-		setVariableSKY({_a}, "Kills", "%{_killsGET}%")
+		degerEkle({_a}, "minigamesapi", "Kills", 1, "%replaceMessage({_a}, {MySQLAPI::minigamesapi::default})%")
 		degerEkleSKY("Datas.Players-List.%{_auuid}%.Kills", 1, "arenas/%{_Arena}%")
 		if {_TeamStatus} is not "*": 	
 			sendMessageArena("%{_Arena}%", "Death_Type_Killed_FinalKill", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
@@ -662,7 +655,7 @@ on death of player:
 		teleport victim to {_Location}
 	set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 	{_TeamStatus} is not "*"
-	size of {_PlayerList::*} is less than 2
+	size of {_PlayerList::*} is less than {minigamesapi::size::%{_Mode}%}
 	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
 	winMatch({_Arena})
 	wait 5 seconds
@@ -710,8 +703,6 @@ on break:
 					"%type of block at block east event-block%" is "bed_block":
 						set block at block east event-block to air
 			else:
-				#degerEkleYML("Datas.Players-List.%uuid of player%.Breaked", 1, "%{minigamesapi::game}%/arenas/%{_Arena}%")
-				#degerEkle(player, "bedwars", "breaked", 1, "%replaceMessage(player, {MySQLAPI::bedwars::default})%")
 				set {_finder} to 200
 				set {_name} to "?"
 				set {_Beds::*} to configuration section "Datas.Temp-Bed-Locations" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
@@ -750,10 +741,6 @@ on break:
 						set {_lang.%loop-value%} to language of {_Player::%loop-value%}
 						set {_featureSaver} to checkFileSKY("Datas.Features.%{_name}%.2", "arenas/%{_Arena}%")
 						if {_featureSaver} is not "true":
-							set {_bedsGET} to getVariableSKY(player, "BreakedBeds") parsed as number
-							add 1 to {_bedsGET}
-							setVariableSKY(player, "BreakedBeds", "%{_bedsGET}%")
-							degerEkleSKY("Datas.Players-List.%uuid of player%.BreakedBeds", 1, "arenas/%{_Arena}%")
 							playSoundSKY({_Player::%loop-value%}, "WITHER_DEATH", "WITHER_DEATH", 1)
 							send title "%{SW::Messages::%{_lang.%loop-value%}%::Your_Bed_Destroy_Feature_1}%" with subtitle "%{SW::Messages::%{_lang.%loop-value%}%::Your_Bed_Destroy_2}%" for 2 seconds to {_Player::%loop-value%}
 							"%type of block at block north {_Location::%{_name}%}%" is "bed_block":
@@ -783,13 +770,6 @@ on break:
 					wait 1 ticks
 					set block at {_Location::%{_name}%} to bed_block:8  
 					stop
-				{_found} is false:
-					size of {_PlayerList::*} is 1
-					winMatch({_Arena})
-					wait 3 seconds
-					writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")	
-					wait 1 ticks
-					debugArena("%{_Arena}%", "win")
 				checkFileSKY("Datas.Features.%{_team}%.4", "arenas/%{_Arena}%") is "true":
 					apply potion of speed of tier 2 to the player for 15 seconds
 				writeFileSKY("Datas.Team-Status.%{_name}%", "false", "arenas/%{_Arena}%")
@@ -797,6 +777,15 @@ on break:
 				broadcast ""
 				broadcastServer("Bed_Destroy", "{BY}^%player%~{TEAM}^%{SW::Messages::%{_lang}%::Team_%{_name}%_Name}%", false)	
 				broadcast ""				
+				degerEkle(player, "minigamesapi", "BreakedBeds", 1, "%replaceMessage(player, {MySQLAPI::minigamesapi::default})%")
+				degerEkleSKY("Datas.Players-List.%uuid of player%.BreakedBeds", 1, "arenas/%{_Arena}%")
+				{_found} is false:
+					size of {_PlayerList::*} is 1
+					winMatch({_Arena})
+					wait 3 seconds
+					writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")	
+					wait 1 ticks
+					debugArena("%{_Arena}%", "win")
 		else:
 			player has permission "minigameapi.admin":
 				stop
@@ -1459,26 +1448,6 @@ on load:
 	set {SW::Menu_PreviousMenu_Item} to "160:14" parsed as material
 	set {SW::Menu_Item} to "160:15" parsed as material
 	delete {minigamesapi::inventories::*}
-	checkFileSKY("General.Storage-Type", "config") is "MySQL" or "sql" or "mysql":
-		set {_host} to checkFileSKY("General.MySQL.Connect.Host", "config")
-		set {_username} to checkFileSKY("General.MySQL.Connect.Username", "config")
-		set {_password} to checkFileSKY("General.MySQL.Connect.Password", "config")
-		set {_database} to checkFileSKY("General.MySQL.Connect.Database", "config")
-		set {_table} to checkFileSKY("General.MySQL.Connect.Table", "config")
-		set {_player} to checkFileSKY("General.MySQL.Settings.Player", "config")
-		set {_kills} to checkFileSKY("General.MySQL.Settings.Kills", "config")
-		set {_deaths} to checkFileSKY("General.MySQL.Settings.Deaths", "config")
-		set {_wins} to checkFileSKY("General.MySQL.Settings.Wins", "config")
-		set {_played} to checkFileSKY("General.MySQL.Settings.Played", "config")
-		set {_kits} to checkFileSKY("General.MySQL.Settings.Kits", "config")
-		set {_credits} to checkFileSKY("General.MySQL.Settings.Credits", "config")
-		#set mysql host to "%{_host}%"
-		#set mysql username to "%{_username}%"
-		#set mysql password to "%{_password}%"
-		#set mysql database to "%{_database}%"
-		#connect to mysql
-		#mysql update "CREATE TABLE IF NOT EXISTS `%{_table}%` (`%{_player}%` varchar(60),`%{_kills}%` INTEGER,`%{_deaths}%` INTEGER,`%{_wins}%` INTEGER,`%{_played}%` INTEGER,`%{_kits}%` varchar(500),`%{_credits}%` INTEGER)"
-	#stop
 	set {_arenas::*} to files in "plugins/%{minigamesapi::game}%/arenas"
 	loop {_arenas::*}:
 		set {_file} to "%loop-value%"

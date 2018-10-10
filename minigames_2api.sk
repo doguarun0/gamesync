@@ -4,12 +4,26 @@ on load:
 	set {minigamesapi::size::Duo} to 2
 	set {minigamesapi::size::4x4} to 4
 	set {minigamesapi::size::6x6} to 6
+	set {minigamesapi::MySQL} to true
 	#
+	# Minigames API MYSQL
+	{minigamesapi::shortnamegame} is set:
+		set {MySQLAPI::minigamesapi::tablo} to "%{minigamesapi::shortnamegame}%_stats"
+		set {MySQLAPI::minigamesapi::user} to "user_uuid"
+		set {MySQLAPI::minigamesapi::default} to "(`%{MySQLAPI::minigamesapi::user}%`, `user_name`) VALUES ('{UUID}', '{PLAYER}');"
+		set {_stats.bedwars} to ",`BreakedBeds` int(50) NOT NULL DEFAULT '0'"
+		set {_stats.kingdoms} to ",`CapturedNexus` int(50) NOT NULL DEFAULT '0',`CapturedTown` int(50) NOT NULL DEFAULT '0'"
+		set {_stats.skywars} to ",`Kits` int(50) NOT NULL DEFAULT '0',`Credits` int(50) NOT NULL DEFAULT '0'"
+		set {_read} to "CREATE TABLE IF NOT EXISTS `%{MySQLAPI::minigamesapi::tablo}%` (`%{MySQLAPI::minigamesapi::user}%` varchar(255),`user_name` varchar(255),`Kills` int(40) NOT NULL DEFAULT '0',`Deaths` int(50) NOT NULL DEFAULT '0',`Played` int(40) NOT NULL DEFAULT '0',`Wins` int(40) NOT NULL DEFAULT '0'%{_stats.%{minigamesapi::shortnamegame}%}%,UNIQUE KEY `user_uuid` (user_uuid),UNIQUE KEY `user_name` (`user_name`))"
+		execute unsafe {_read} in {sql1} 
+	#
+	# Leveling MYSQL
 	set {MySQLAPI::leveling::tablo} to "UsersLEVELS"
 	set {MySQLAPI::leveling::user} to "user_uuid"
 	set {MySQLAPI::leveling::default} to "(`user_uuid`, `user_name`) VALUES ('{UUID}', '{PLAYER}');"
-	set {_read} to "CREATE TABLE IF NOT EXISTS `UsersLEVELS` (`user_uuid` varchar(255),`user_name` varchar(255),`superskywars_level` int(40) NOT NULL DEFAULT '1',`superskywars_exp` int(50) NOT NULL DEFAULT '0',`bedwars_level` int(40) NOT NULL DEFAULT '1',`bedwars_exp` int(50) NOT NULL DEFAULT '0',`kingdoms_level` int(40) NOT NULL DEFAULT '1',`kingdoms_exp` int(50) NOT NULL DEFAULT '0',UNIQUE KEY `user_uuid` (user_uuid),UNIQUE KEY `user_name` (`user_name`))"
+	set {_read} to "CREATE TABLE IF NOT EXISTS `%{MySQLAPI::leveling::tablo}%` (`%{MySQLAPI::leveling::user}%` varchar(255),`user_name` varchar(255),`skywars_level` int(40) NOT NULL DEFAULT '1',`skywars_exp` int(50) NOT NULL DEFAULT '0',`bedwars_level` int(40) NOT NULL DEFAULT '1',`bedwars_exp` int(50) NOT NULL DEFAULT '0',`kingdoms_level` int(40) NOT NULL DEFAULT '1',`kingdoms_exp` int(50) NOT NULL DEFAULT '0',UNIQUE KEY `%{MySQLAPI::leveling::user}%` (%{MySQLAPI::leveling::user}%),UNIQUE KEY `user_name` (`user_name`))"
 	execute unsafe {_read} in {sql1} 
+	#
 	#
 	set {SW::Leveling_Header} to "      &c&l&nMINECROWD&r"
 	set {SW::Messages::EN::Leveling_Progress} to "&0⇪ Progress:&r &8Level {LEVEL}"
@@ -138,22 +152,6 @@ function addPlayersListPartiesSKY(party: offline player, player: offline player,
 	else:
 		set {_res} to "%{_string}%;%{_player}%"	
 	set yaml value "Datas.Players-List.%{_UUID}%.Players" from file "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml" to "%{_res}%"
-function getVariableSKY(p: player, variableName: text) :: text:
-	set {_mysql} to checkFileSKY("General.Storage-Type", "config")
-	if {_mysql} is "MySQL" or "sql" or "mysql":
-		set {_true} to true
-	else:
-		set {_uuid} to "%uuid of {_p}%"
-		#set {_var} to checkFileSKY("Players.%{_variableName}%", "playerdata/%{_uuid}%")
-		set {_var} to 0
-		return {_var}
-function setVariableSKY(p: player, variableName: text, value: text):
-	set {_mysql} to checkFileSKY("General.Storage-Type", "config")
-	if {_mysql} is "MySQL" or "sql" or "mysql":
-		set {_true} to true
-	else:
-		set {_uuid} to "%uuid of {_p}%"
-	#	writeFileSKY("Players.%{_variableName}%", "%{_value}%", "playerdata/%{_uuid}%")
 function chanceOf(Number: number) :: text:
 	set {_Sonuc} to 100/{_Number}
 	set {_random} to random integer from 1 to {_Sonuc}
@@ -416,7 +414,7 @@ function bungeeConnector(Player: player, Message: text, Type: text):
 	set {_BungeeLobby} to {SW::Bungee_Lobby}	 
 	{_BungeeLobby} is not "*"
 	if {_Type} is "0":
-		if {_Player} doesn't have permission "minigameapi.admin":
+		if {_Player} doesn't have permission "minigamesapi.admin":
 			kick {_Player} due to "%{_Message}%"
 		else:
 			send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Have_Perm_Bungee}%" to {_Player}
@@ -599,17 +597,17 @@ function arenaGUI(Player: player, Arena: text):
 		replace all "{MAP}" with "%{SW::Messages::%{_lang}%::Text_NotSet}%" in {_Lore1}
 	if {_Status} is "0":
 		set {_Lore1} to "%{_Lore1}%%{SW::Messages::%{_lang}%::Click_Start}%" 
-	format gui slot 4 of {_Player} with {SW::Messages::%{_lang}%::Game_Item_%{_Status}%} named "%{SW::Messages::%{_lang}%::Arena_GUI_1}%" with lore "%{_Lore1}%" to run {_Player} command "/minigameapi start %{_Arena}%"
-	format gui slot 9 of {_Player} with far music disc named "%{SW::Messages::%{_lang}%::Arena_GUI_2}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_2_Lore}%" to run {_Player} command "/minigameapi enable %{_Arena}%"
+	format gui slot 4 of {_Player} with {SW::Messages::%{_lang}%::Game_Item_%{_Status}%} named "%{SW::Messages::%{_lang}%::Arena_GUI_1}%" with lore "%{_Lore1}%" to run {_Player} command "/minigamesapi start %{_Arena}%"
+	format gui slot 9 of {_Player} with far music disc named "%{SW::Messages::%{_lang}%::Arena_GUI_2}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_2_Lore}%" to run {_Player} command "/minigamesapi enable %{_Arena}%"
 	format gui slot 11 of {_Player} with skeleton head named "%{SW::Messages::%{_lang}%::Arena_GUI_4}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_4_Lore}%||%{SW::Messages::%{_lang}%::Text_Status}%%{_Minimum}%" to close then run function setArenaPlayersCount({_Player}, "%{_Arena}%", "0")
-	format gui slot 13 of {_Player} with book named "%{SW::Messages::%{_lang}%::Arena_GUI_10}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_10_Lore}%" to run {_Player} command "/minigameapi debug %{_Arena}%"
+	format gui slot 13 of {_Player} with book named "%{SW::Messages::%{_lang}%::Arena_GUI_10}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_10_Lore}%" to run {_Player} command "/minigamesapi debug %{_Arena}%"
 	format gui slot 15 of {_Player} with player head named "%{SW::Messages::%{_lang}%::Arena_GUI_5}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_5_Lore}%||%{SW::Messages::%{_lang}%::Text_Status}%%{_Maximum}%" to close then run function setArenaPlayersCount({_Player}, "%{_Arena}%", "1")
-	format gui slot 17 of {_Player} with chirp music disc named "%{SW::Messages::%{_lang}%::Arena_GUI_3}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_3_Lore}%" to run {_Player} command "/minigameapi disable %{_Arena}%"
+	format gui slot 17 of {_Player} with chirp music disc named "%{SW::Messages::%{_lang}%::Arena_GUI_3}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_3_Lore}%" to run {_Player} command "/minigamesapi disable %{_Arena}%"
 	format gui slot 23 of {_Player} with map named "%{SW::Messages::%{_lang}%::Arena_GUI_9}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_9_Lore}%" to close then run function setMapArena({_Player}, "%{_Arena}%")
 	if {_CurrentMap} is not "*":
 		format gui slot 19 of {_Player} with nether star named "%{SW::Messages::%{_lang}%::Arena_GUI_6}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_6_Lore}%" to close then run function setSpawnArena({_Player}, "%{_Arena}%")
 		format gui slot 21 of {_Player} with grass named "%{SW::Messages::%{_lang}%::Arena_GUI_8}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_8_Lore}%" to close then run function schematicAPISKY("%{_CurrentMap}%", "1")
-		format gui slot 25 of {_Player} with compass named "%{SW::Messages::%{_lang}%::Arena_GUI_7}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_7_Lore}%" to run {_Player} command "/minigameapi setlobby %{_CurrentMap}%"
+		format gui slot 25 of {_Player} with compass named "%{SW::Messages::%{_lang}%::Arena_GUI_7}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_7_Lore}%" to run {_Player} command "/minigamesapi setlobby %{_CurrentMap}%"
 	else:
 		format gui slot 19 of {_Player} with nether star named "%{SW::Messages::%{_lang}%::Arena_GUI_6}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_6_Lore}%" to close then run function sendMessagePlayer({_Player}, "Causes::0")
 		format gui slot 21 of {_Player} with grass named "%{SW::Messages::%{_lang}%::Arena_GUI_8}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_8_Lore}%" to close then run function sendMessagePlayer({_Player}, "Causes::0")
@@ -680,7 +678,7 @@ function setMapArena(Player: player, Arena: text):
 	loop {_Variables::*}:
 		set {_Lore} to {SW::Messages::%{_lang}%::Map_Select_Lore}
 		replace all "{ARENA}" with "%{_Arena}%" in {_Lore}
-		format gui slot {_Count} of {_Player} with map named "&f%loop-value%" with lore "%{_Lore}%" to close then run {_Player} command "minigameapi map %{_Arena}% %loop-value%"
+		format gui slot {_Count} of {_Player} with map named "&f%loop-value%" with lore "%{_Lore}%" to close then run {_Player} command "minigamesapi map %{_Arena}% %loop-value%"
 		add 1 to {_Count}	
 function setArenaPlayersCount(Player: player, Arena: text, Type: text):
 	set {_lang} to language of {_Player}
@@ -735,10 +733,8 @@ function PageAPIGame(Player: player, Type: text, page: number):
 			add {_ID} to {_Variables::*}
 	else if {_Type} is "1" or "5":
 		{_Type} is "1":
-			set {_CreditsPL} to getVariableSKY({_Player}, "Credits") parsed as number
-			{_CreditsPL} is not set:
-				set {_CreditsPL} to 0
-			set {_KitsPL} to getVariableSKY({_Player}, "Kits")
+			set {_CreditsPL} to degerOku({_Player}, "minigamesapi", "Credits", "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%", true, "0") parsed as number
+			set {_KitsPL} to degerOku({_Player}, "minigamesapi", "Kits", "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%", true, "*")
 		set {_Variables::*} to configuration section "Kits" get of "plugins/%{minigamesapi::game}%/kits.yml"
 	else if {_Type} is "2":
 		loop 15 times:
@@ -805,7 +801,7 @@ function PageAPIGame(Player: player, Type: text, page: number):
 					else:
 						set {_permcont} to true
 						{_Kit.Permission} is "true":
-							{_Player} doesn't have permission "minigameapi.kits.%{_Kit}%"
+							{_Player} doesn't have permission "minigamesapi.kits.%{_Kit}%"
 							set {_permcont} to false
 						if {_permcont} is true:
 							if {_CreditsPL} is greater or equal to {_Kit.Cost}:
@@ -817,7 +813,7 @@ function PageAPIGame(Player: player, Type: text, page: number):
 							set {_Lore.Alt} to "||%{SW::Messages::%{_lang}%::Kit_Price}% %{_Kit.Cost}% ⛃||%{SW::Messages::%{_lang}%::No_Kit_Buy_Permission}%"
 							set {_V::Item} to "166" parsed as material	
 					checkFileSKY("Kits.%{_Kit}%.Permission-Needed", "kits") is "true":
-						{_Player} doesn't have permission "minigameapi.kits.%{_Kit}%"
+						{_Player} doesn't have permission "minigamesapi.kits.%{_Kit}%"
 						set {_Lore.Alt} to "%{SW::Messages::%{_lang}%::No_Kit_Use}%"
 						set {_V::Item} to "166" parsed as material
 					set {_V::Lore} to "&7%coloured {_V::Lore}%||||%{_Lore.Alt}%"
@@ -864,17 +860,17 @@ function PageAPIGame(Player: player, Type: text, page: number):
 						if {_Arena} is not "*":	
 							set {_Kit} to checkFileSKY("Datas.Players-List.%{_uuid}%.Kit", "arenas/%{_Arena}%") 
 							if "%{_Kit}%" is not "%{_target}%":	
-								set {_CreditsPL} to getVariableSKY({_Player}, "Credits") parsed as number
+								set {_CreditsPL} to degerOku({_Player}, "minigamesapi", "Credits", "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%", true, "0") parsed as number
 								{_CreditsPL} is not set:
 									set {_CreditsPL} to 0
-								set {_KitsPL} to getVariableSKY({_Player}, "Kits")
+								set {_KitsPL} to degerOku({_Player}, "minigamesapi", "Kits", "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%", true, "*")
 								if {_KitsPL} doesn't contain "%{_target}%":
 									set {_Kit.Cost} to checkFileSKY("Kits.%{_target}%.Cost", "kits") parsed as number
 									{_Kit.Cost} is not set:
 										set {_Kit.Cost} to 0
 									set {_permcont} to true
 									{_Kit.Permission} is "true":
-										{_Player} doesn't have permission "minigameapi.kits.%{_target}%"
+										{_Player} doesn't have permission "minigamesapi.kits.%{_target}%"
 										set {_permcont} to false
 									if {_permcont} is true:
 										if {_Kit.Cost} is greater than 0:
@@ -882,15 +878,14 @@ function PageAPIGame(Player: player, Type: text, page: number):
 												{_KitsPL} is "*":
 													set {_KitsPL} to ""
 												set {_KitsPL} to "%{_target}%,%{_KitsPL}%"
-												setVariableSKY({_Player}, "Kits", "%{_KitsPL}%") 
+												degerAyarla({_Player}, "minigamesapi", "Kits", "%{_KitsPL}%", "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%")
 												writeFileSKY("Datas.Players-List.%{_uuid}%.Kit", "%{_target}%", "arenas/%{_Arena}%")	
 												set {_Name} to checkFileSKY("Kits.%{_target}%.Name", "kits")
 												set {_msg} to {SW::Messages::%{_lang}%::Kit_Bought}
 												replace all "{KIT}" with "%{_Name}%" in {_msg}
 												replace all "{COST}" with "%{_Kit.Cost}%" in {_msg}
 												send "%{SW::Prefix}% %{_msg}%" to {_Player}
-												remove {_Kit.Cost} from {_CreditsPL}
-												setVariableSKY({_Player}, "Credits", "%{_CreditsPL}%")
+												degerCikar({_Player}, "minigamesapi", "Credits", {_Kit.Cost}, "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%")
 												stop
 											else:
 												send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Not_Enough_Credits}%" to {_Player}
@@ -1027,17 +1022,17 @@ function PageAPIGame(Player: player, Type: text, page: number):
 			make gui {_x} with {SW::Menu_Item}
 		add 1 to {_x}
 	open last gui to {_Player}
-command /minigameapi [<text>] [<text>] [<text>] [<text>]:
+command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 	aliases: /mapi, /ma
 	executable by: players
 	trigger:
-		player has permission "minigameapi.*" or "minigameapi.admin"
+		player has permission "minigamesapi.*" or "minigamesapi.admin"
 		set {_lang} to language of player
 		set {_prefixO} to "&e&l%{minigamesapi::game}% &6➥&7"
 		if arg 1 is not set:
 			stop
 		else if arg 1 is "create":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.create":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.create":
 				if arg 2 is "map" or "arena":
 					if arg 2 is "arena":
 						if arg 3 is set:
@@ -1052,7 +1047,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 								writeFileSKY("Datas.Min-Players", "2", "arenas/%arg 3%")
 								writeFileSKY("Datas.Players-List", "*", "arenas/%arg 3%")
 								writeFileSKY("Datas.Spectator-List", "*", "arenas/%arg 3%")		
-								"%{minigamesapi::game}%" is "SUPERSKYWARS":
+								"%{minigamesapi::game}%" is "SKYWARS":
 									writeFileSKY("Datas.King-Time", "-1", "arenas/%arg 3%")
 								playSoundSKY(player, "BLOCK_NOTE_PLING", "NOTE_PLING", 1)							
 								set {_msg} to {SW::Messages::%{_lang}%::Arena_Created}
@@ -1121,7 +1116,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "remove" or "delete":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.remove" or "minigameapi.delete":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.remove" or "minigamesapi.delete":
 				if arg 2 is "map" or "arena":
 					if arg 2 is "arena":
 						if arg 3 is set:
@@ -1163,7 +1158,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "setcenter":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.setspawn":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.setspawn":
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/maps/%arg 2%.yml" exists:
 						writeFileSKY("Datas.Center.x", "%x coordinate of player%", "maps/%arg 2%")
@@ -1180,13 +1175,13 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "setlocation" or "lokasyonbelirle":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.setspawn":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.setspawn":
 				if arg 3 is "Spawns" or "Item" or "Bed" or "ItemShop" or "Upgrade" or "Emerald" or "Diamond" or "IronMine" or "CoalMine" or "RedstoneMine" or "EmeraldMine" or "GoldMine" or "Nexus" or "Town":
 					if arg 2 is set:
 						if file "plugins/%{minigamesapi::game}%/maps/%arg 2%.yml" exists:
 							if arg 4 is set:
 								arg 3 is not "Spawns":
-									"%{minigamesapi::game}%" is "SUPERSKYWARS"
+									"%{minigamesapi::game}%" is "SKYWARS"
 									stop
 								arg 3 is "IronMine" or "CoalMine" or "RedstoneMine" or "EmeraldMine" or "GoldMine" or "Nexus" or "Town":
 									"%{minigamesapi::game}%" is not "KINGDOMS"
@@ -1267,7 +1262,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player		
 		else if arg 1 is "setlobby":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.setlobby":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.setlobby":
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/maps/%arg 2%.yml" exists:
 						writeFileSKY("Datas.Lobby.x", "%x coordinate of player%", "maps/%arg 2%")
@@ -1284,7 +1279,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "enable":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.enable":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.enable":
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/arenas/%arg 2%.yml" exists:
 						if checkFileSKY("Datas.Status", "arenas/%arg 2%") is not "0":
@@ -1310,7 +1305,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "disable":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.disable":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.disable":
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/arenas/%arg 2%.yml" exists:
 						if checkFileSKY("Datas.Status", "arenas/%arg 2%") is not "4":
@@ -1328,7 +1323,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "debug":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.debug":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.debug":
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/arenas/%arg 2%.yml" exists:
 						set {_Status} to checkFileSKY("Datas.Status", "arenas/%arg 2%")
@@ -1346,7 +1341,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player	
 		else if arg 1 is "redefine":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.debug":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.debug":
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/maps/%arg 2%.yml" exists:
 						set {_Schematics} to {SW::Schematics}
@@ -1447,40 +1442,40 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::Enter_Map_Name}%" to player
 		else if arg 1 is "wand":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.wand":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.wand":
 				give 1 arrow named "%{SW::Messages::%{_lang}%::Item_Wand}%" to player
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::Wand_Added}%"
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "kits" or "kit":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.player" or "minigameapi.kits" or "minigameapi.kit":
-				"%{minigamesapi::game}%" is "SUPERSKYWARS"
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.player" or "minigamesapi.kits" or "minigamesapi.kit":
+				"%{minigamesapi::game}%" is "SKYWARS"
 				PageAPIGame(player, "1", 0)
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "glass" or "glasses":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.player" or "minigameapi.glass" or "minigameapi.glasses":
-				"%{minigamesapi::game}%" is "SUPERSKYWARS"
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.player" or "minigamesapi.glass" or "minigamesapi.glasses":
+				"%{minigamesapi::game}%" is "SKYWARS"
 				PageAPIGame(player, "2", 0)
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "bungee":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.bungee":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.bungee":
 				bungeeGUI(player, "0")
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "list":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.player" or "minigameapi.list":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.player" or "minigamesapi.list":
 				PageAPIGame(player, "0", 0)
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "manage":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.manage":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.manage":
 				PageAPIGame(player, "6", 0)
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "playercount":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.playercount":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.playercount":
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/arenas/%arg 2%.yml" exists:
 						if arg 3 is "min" or "max":
@@ -1521,7 +1516,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player
 		else if arg 1 is "map":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.map":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.map":
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/arenas/%arg 2%.yml" exists:
 						if arg 3 is set:
@@ -1569,7 +1564,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 			else:
 				send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Permission}%" to player				
 		else if arg 1 is "start":
-			if player has permission "minigameapi.*" or "minigameapi.admin" or "minigameapi.start":
+			if player has permission "minigamesapi.*" or "minigamesapi.admin" or "minigamesapi.start":
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/arenas/%arg 2%.yml" exists:
 						set {_Status} to checkFileSKY("Datas.Status", "arenas/%arg 2%")
@@ -1588,7 +1583,7 @@ command /minigameapi [<text>] [<text>] [<text>] [<text>]:
 		else:
 			send "%{_prefixO}% %{SW::Messages::%{_lang}%::Unknown_Command}%" to player
 on left click with arrow:
-	player has permission "minigameapi.admin" or "minigameapi.wand"
+	player has permission "minigamesapi.admin" or "minigamesapi.wand"
 	set {_lang} to language of player
 	name of player's tool is "%{SW::Messages::%{_lang}%::Item_Wand}%"
 	clicked block is set
@@ -1602,7 +1597,7 @@ on left click with arrow:
 	replace all "{LOC}" with "%location of clicked block%" in {_msg}
 	message "%{SW::Prefix}% %{_msg}%" to player
 on right click with arrow:
-	player has permission "minigameapi.admin" or "minigameapi.wand"
+	player has permission "minigamesapi.admin" or "minigamesapi.wand"
 	set {_lang} to language of player
 	name of player's tool is "%{SW::Messages::%{_lang}%::Item_Wand}%"
 	clicked block is set
@@ -1787,13 +1782,11 @@ function winMatch(Arena: text):
 	set {_all} to 0
 	loop {_PlayerList::*}:
 		set {_Player::%loop-value%} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
-		set {_Kills::%loop-value%} to a value "Datas.Players-List.%loop-value%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
-		add {_Kills::%loop-value%} to {_all}
 		{_party} is not set:
 			set {_party} to {_Player::%loop-value%}
 	size of {_Player::*} > 0:
 		set {_RecentPlayers::*} to configuration section "Datas.All-Joined" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
-		broadcastServer("PartyWinText", "{WINNER}^%{_party}%~{ARENA}^%{_Arena}%~{KILLS}^%{_all}%", true)		
+		broadcastServer("PartyWinText", "{WINNER}^%{_party}%", true)		
 		sendTitleArena("%{_Arena}%", "Title_GameFinished", "*", "SubTitle_Win", "{WINNER}^%{_party}%")
 		wait 5 ticks
 		loop {_Player::*}:
@@ -1804,9 +1797,8 @@ function winMatch(Arena: text):
 			replace all "{PLAYER}" with "%{_Player}%" in {_msg}
 			replace all "{KILLS}" with "%{_Kills::%loop-value%}%" in {_msg}
 			set {_UUID} to "%uuid of {_Player}%"
-			set {_winsGET} to getVariableSKY({_Player}, "Wins") parsed as number
-			add 1 to {_winsGET}
-			setVariableSKY({_Player}, "Wins", "%{_winsGET}%")
+			
+			degerEkle({_Player}, "minigamesapi", "Wins", 1, "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%")
 			
 			xpAPI({_Player}, true)
 			
@@ -1828,6 +1820,10 @@ function winMatch(Arena: text):
 				launch "BALL_LARGE" firework at {_Player} timed 1 coloured red
 				launch "BALL_LARGE" firework at {_Player} timed 1 coloured black
 				wait 6 ticks
+	loop {_RecentPlayers::*}:
+		delete {_Player}
+		set {_Player} to "%loop-value%" parsed as offline player
+		degerEkle({_Player}, "minigamesapi", "Played", 1, "%replaceMessage({_Player}, {MySQLAPI::minigamesapi::default})%")
 	writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")	
 function leaveGame(PlayerName: player, boolean: boolean):
 	set {_UUID} to "%uuid of {_PlayerName}%"
@@ -1932,7 +1928,7 @@ function joinGame(PlayerName: player, BungeeArena: text):
 				writeFileSKY("Datas.Players-List.%{_UUID}%.Kills", "0", "arenas/%{_BungeeArena}%")
 				if "%{minigamesapi::game}%" is "BEDWARS":
 					writeFileSKY("Datas.Players-List.%{_UUID}%.Final-Kills", "0", "arenas/%{_BungeeArena}%")
-				else if "%{minigamesapi::game}%" is "SUPERSKYWARS":
+				else if "%{minigamesapi::game}%" is "SKYWARS":
 					writeFileSKY("Datas.Players-List.%{_UUID}%.Chests", "0", "arenas/%{_BungeeArena}%")
 					writeFileSKY("Datas.Players-List.%{_UUID}%.Kit", "*", "arenas/%{_BungeeArena}%")
 					writeFileSKY("Datas.Players-List.%{_UUID}%.Cage-Block", "*", "arenas/%{_BungeeArena}%")
@@ -1955,7 +1951,7 @@ function joinGame(PlayerName: player, BungeeArena: text):
 					set slot 8 of {_PlayerName}'s inventory to magma cream named "%{SW::Messages::%{_lang}%::Bungee_Lobby_Item}%"
 					{_Mode} is not "Solo"
 					set slot 0 of {_PlayerName}'s inventory to paper named "%{SW::Messages::%{_lang}%::PartyItem}%"
-				"%{minigamesapi::game}%" is "SUPERSKYWARS":
+				"%{minigamesapi::game}%" is "SKYWARS":
 					set slot 7 of {_PlayerName}'s inventory to clock named "%{SW::Messages::%{_lang}%::Kit_Changer}%"
 					set slot 6 of {_PlayerName}'s inventory to name tag named "%{SW::Messages::%{_lang}%::Chest_Vote}%"
 				set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_BungeeArena}%.yml"
@@ -2037,7 +2033,7 @@ on quit:
 	wait 1 ticks
 	leaveGame(player, false)
 on drop:
-	player has permission "minigameapi.admin":
+	player has permission "minigamesapi.admin":
 		stop
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of player%")
 	if {_Arena} is not "*":
@@ -2046,7 +2042,7 @@ on drop:
 			set {_lang} to language of player
 			send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::No_Action_Lobby}%" to player
 		else:
-			if "%{minigamesapi::game}%" is "SUPERSKYWARS":
+			if "%{minigamesapi::game}%" is "SKYWARS":
 				checkFileSKY("Datas.Players-List.%uuid of player%.Reviving", "arenas/%{_Arena}%") is "true":
 					cancel event
 					stop
