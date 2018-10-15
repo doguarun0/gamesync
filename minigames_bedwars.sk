@@ -1,7 +1,7 @@
 ﻿on load:
 	#
 	set {minigamesapi::game} to "BEDWARS"
-	set {minigamesapi::game_version} to "11ekim"
+	set {minigamesapi::game_version} to "alpha/14.10"
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"
@@ -65,6 +65,7 @@ function upgradeAPI(Arena: text):
 						writeFileSKY("Datas.Temp-Bed-Locations.%loop-number%.z", "%{_z}%", "arenas/%{_Arena}%")	
 						writeFileSKY("Datas.Temp-Bed-Locations.%loop-number%.world", "%{_w}%", "arenas/%{_Arena}%")	
 						set {_Location::%loop-number%} to location ({_x}, {_y}, {_z}) in world {_w}  
+						set block at {_Location::%loop-number%} to air
 						"%type of block at block north {_Location::%loop-number%}%" is "bed_block":
 							set block at block north {_Location::%loop-number%} to air
 						"%type of block at block south {_Location::%loop-number%}%" is "bed_block":
@@ -73,7 +74,6 @@ function upgradeAPI(Arena: text):
 							set block at block west {_Location::%loop-number%} to air
 						"%type of block at block east {_Location::%loop-number%}%" is "bed_block":
 							set block at block east {_Location::%loop-number%} to air
-						set block at {_Location::%loop-number%} to air
 						writeFileSKY("Datas.Team-Status.%loop-number%", "false", "arenas/%{_Arena}%")
 				writeFileSKY("Datas.Upgrade-Tier", "%{_Tier}%", "arenas/%{_Arena}%")	
 				{_Tier} is greater or equal to 4: 
@@ -139,8 +139,6 @@ function dropIngots(Arena: text, Spot: number, Type: number):
 	stop
 function bedAPI(Arena: text):
 	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
-	loop all villagers:
-		kill loop-entity
 	set {_Beds::*} to configuration section "Datas.Bed" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
 	loop size of {_Beds::*} times:
 		set {_x} to checkFileSKY("Datas.Bed.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
@@ -166,12 +164,14 @@ function bedAPI(Arena: text):
 		set {_z} to checkFileSKY("Datas.ItemShop.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
 		set {_w} to checkFileSKY("Datas.ItemShop.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
 		set {_Location::%loop-number%} to location ({_x}, {_y}, {_z}) in world {_w}  
-		spawn 1 adult villager at {_Location::%loop-number%}
-		add "{Profession:1}" to nbt of last spawned villager
-		add "{Offers:{}}" to nbt of last spawned villager
-		#add "{NoAI:1}" to nbt of spawned villager
-		#add "{Profession:2,Offers:{},NoAI:1}" to nbt of spawned villager
-		set display name of last spawned villager to "%{SW::Messages::Item_Shop_NPC}%"
+		loop all entities in radius 3 around {_Location::%loop-number%}:
+			citizen id of loop-entity is set
+			destroy citizen citizen id of loop-entity
+		create citizen named "%{SW::Messages::Item_Shop_NPC}%" at {_Location::%loop-number%}
+		change citizen last created citizen skin to "MHF_Villager"
+		set npc last created citizen the look close trait
+		set citizen last created citizen nametag visible
+		writeFileSKY("Datas.Shop-NPC.%loop-number%", "%last created citizen%", "arenas/%{_Arena}%")
 	set {_Upgrades::*} to configuration section "Datas.Upgrade" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
 	loop size of {_Upgrades::*} times:
 		set {_x} to checkFileSKY("Datas.Upgrade.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
@@ -179,11 +179,14 @@ function bedAPI(Arena: text):
 		set {_z} to checkFileSKY("Datas.Upgrade.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
 		set {_w} to checkFileSKY("Datas.Upgrade.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
 		set {_Location::%loop-number%} to location ({_x}, {_y}, {_z}) in world {_w}  
-		spawn 1 adult villager at {_Location::%loop-number%}
-		add "{Profession:2}" to nbt of last spawned villager
-		add "{Offers:{}}" to nbt of last spawned villager
-		#add "{NoAI:1}" to nbt of spawned villager
-		set display name of last spawned villager to "%{SW::Messages::Upgrade}%"
+		loop all entities in radius 3 around {_Location::%loop-number%}:
+			citizen id of loop-entity is set
+			destroy citizen citizen id of loop-entity
+		create citizen named "%{SW::Messages::Upgrade}%" at {_Location::%loop-number%}
+		change citizen last created citizen skin to "dkznike"
+		set npc last created citizen the look close trait
+		set citizen last created citizen nametag visible
+		writeFileSKY("Datas.Upgrade-NPC.%loop-number%", "%last created citizen%", "arenas/%{_Arena}%")
 	set {_Item::*} to configuration section "Datas.Item" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
 	loop size of {_Item::*} times:
 		#set {_x} to checkFileSKY("Datas.Item.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
@@ -260,7 +263,6 @@ function scoreboardAPI(Player: player):
 	set {_lang} to language of {_Player}
 	set {_UUID} to "%uuid of {_Player}%"
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
-	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
 	set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
 	set {_Mode} to checkFileSKY("Datas.Type", "arenas/%{_Arena}%")
 	set {_Team} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%")
@@ -268,14 +270,14 @@ function scoreboardAPI(Player: player):
 	
 	add "&1" and "&2" and "&3" and "&4" and "&5" and "&6" and "&7" and "&8" and "&9" and "&a" and "&b" and "&c" and "&d" and "&e" and "&f" to {_c::*}
 	
-	set {_calc.8} to 15
-	set {_calc.7} to 14
-	set {_calc.6} to 13
-	set {_calc.5} to 12
-	set {_calc.4} to 11
-	set {_calc.3} to 10
-	set {_calc.2} to 9
-	set {_calc.1} to 8
+	set {_calc.8} to 14
+	set {_calc.7} to 13
+	set {_calc.6} to 12
+	set {_calc.5} to 11
+	set {_calc.4} to 10
+	set {_calc.3} to 9
+	set {_calc.2} to 8
+	set {_calc.1} to 7
 	set {_calc} to {_calc.%{_Maximum}%}
 				
 	setup skoreboard for {_Player}
@@ -324,7 +326,7 @@ function scoreboardAPI(Player: player):
 					set {_utime} to " (%{_dk2}%:%{_sn2}%)"
 				else:
 					set {_utime} to " (%{_z}%)"	
-			set {_y} to 8
+			set {_y} to 7
 			loop {_Maximum} times:
 				set {_you} to ""
 				set {_statusText} to "&a✔"
@@ -336,16 +338,15 @@ function scoreboardAPI(Player: player):
 				set {_text.%{_y}%} to "%{SW::Messages::%{_lang}%::Team_%loop-number%_KisaltName}% &f%uncolored {SW::Messages::%{_lang}%::Team_%loop-number%_Name}%: %{_statusText}%%{_you}%"
 				add 1 to {_y}
 			set {_text.1} to "&7%{_Mode}% &8%{_Day}%"
-			set {_text.3} to "%{SW::Messages::%{_lang}%::SC_InGame_Map}%&e%{_CurrentMap}%"
-			set {_text.4} to "%{SW::Messages::%{_lang}%::SC_InGame_Time}%&e%{_time}%"
-			set {_text.5} to "%{SW::Messages::%{_lang}%::SC_InGame_Players}%&e%size of {_PlayerList::*}%/%{_Maximum}%"
-			set {_text.6} to "%{SW::Messages::%{_lang}%::SC_InGame_Upgrades}%&e%{SW::Messages::%{_lang}%::Bed_Event_Tier_%{_Tier}%}%%{_utime}%"
+			set {_text.3} to "%{SW::Messages::%{_lang}%::SC_InGame_Time}%&e%{_time}%"
+			set {_text.4} to "%{SW::Messages::%{_lang}%::SC_InGame_Players}%&e%size of {_PlayerList::*}%/%{_Maximum}%"
+			set {_text.5} to "%{SW::Messages::%{_lang}%::SC_InGame_Upgrades}%&e%{SW::Messages::%{_lang}%::Bed_Event_Tier_%{_Tier}%}%%{_utime}%"
 			loop {_calc} times:
 				{_text.%loop-number%} is not set:
 					set {_text.%loop-number%} to "%{_c::%loop-number%}%"
 				set slot loop-number of skoreboard {_Player} to {_text.%loop-number%}
 			wait 20 ticks
-		else:
+		else:	
 			delete skoreboard for {_Player}
 			stop
 function debugArena(Arena: text, Type: text): 
@@ -396,6 +397,8 @@ function debugArena(Arena: text, Type: text):
 	veriCikarSKY("Datas", "Features", "arenas/%{_Arena}%")
 	veriCikarSKY("Datas", "Used-Features", "arenas/%{_Arena}%")
 	veriCikarSKY("Datas", "Upgrades-Tier", "arenas/%{_Arena}%")
+	veriCikarSKY("Datas", "Shop-NPC", "arenas/%{_Arena}%")
+	veriCikarSKY("Datas", "Upgrade-NPC", "arenas/%{_Arena}%")
 	size of {_Player::*} > 0:
 		set {_x} to checkFileSKY("Datas.Lobby.x", "maps/%{_CurrentMap}%") parsed as number
 		set {_y} to checkFileSKY("Datas.Lobby.y", "maps/%{_CurrentMap}%") parsed as number
@@ -592,21 +595,25 @@ on death of player:
 	set {_a} to attacker
 	degerEkle(victim, "%{minigamesapi::shortnamegame}%", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
 	set {_KillsV} to a value "Datas.Players-List.%uuid of victim%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
-	set {_attackerr} to checkFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "arenas/%{_Arena}%")
-	if {_attackerr} is not "*":
-		set {_a} to {_attackerr} parsed as player
-		set {_auuid} to "%uuid of {_a}%"
-		degerEkle({_a}, "%{minigamesapi::shortnamegame}%", "Kills", 1, "%replaceMessage({_a}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
-		degerEkleSKY("Datas.Players-List.%{_auuid}%.Kills", 1, "arenas/%{_Arena}%")
-		if {_TeamStatus} is not "*": 	
-			sendMessageArena("%{_Arena}%", "Death_Type_Killed_FinalKill", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+	if attacker is not victim:
+		set {_attackerArena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of attacker%")
+		if {_attackerArena} is not "*":
+			degerEkle(attacker, "%{minigamesapi::shortnamegame}%", "Kills", 1, "%replaceMessage(attacker, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+			degerEkleSKY("Datas.Players-List.%uuid of attacker%.Kills", 1, "arenas/%{_Arena}%")
+			if {_TeamStatus} is not "*": 	
+				sendMessageArena("%{_Arena}%", "Death_Type_Killed_FinalKill", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+			else:
+				sendMessageArena("%{_Arena}%", "Death_Type_Killed", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
 		else:
-			sendMessageArena("%{_Arena}%", "Death_Type_Killed", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+			if {_TeamStatus} is not "*": 	
+				sendMessageArena("%{_Arena}%", "Death_Type_Died_Final_Kill", "{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+			else:
+				sendMessageArena("%{_Arena}%", "Death_Type_Died", "{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
 	else:
-		if {_TeamStatus} is not "*": 	
-			sendMessageArena("%{_Arena}%", "Death_Type_Died_Final_Kill", "{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+		if {_TeamStatus} is not "*": 
+			sendMessageArena("%{_Arena}%", "Death_Type_Suicide_FinalKill", "{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)
 		else:
-			sendMessageArena("%{_Arena}%", "Death_Type_Died", "{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+			sendMessageArena("%{_Arena}%", "Death_Type_Suicide", "{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)
 	{_TeamStatus} is not "*": 
 		writeFileSKY("Players.Arena-Name", "*", "playerdata/%uuid of victim%")
 		writeFileSKY("Players.Spectator", "*", "playerdata/%uuid of victim%")
@@ -693,14 +700,15 @@ on break:
 					send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Features_Bed_Pickup}%" to player
 					writeFileSKY("Datas.Team-Status.%{_team}%", "false", "arenas/%{_Arena}%")
 					drop bed item at event-block without velocity
-					"%type of block at block north event-block%" is "bed_block":
-						set block at block north event-block to air
-					"%type of block at block south event-block%" is "bed_block":
-						set block at block south event-block to air
-					"%type of block at block west event-block%" is "bed_block":
-						set block at block west event-block to air
-					"%type of block at block east event-block%" is "bed_block":
-						set block at block east event-block to air
+					set block at event-location to air
+					"%type of block at block north event-location%" is "bed_block":
+						set block at block north event-location to air
+					"%type of block at block south event-location%" is "bed_block":
+						set block at block south event-location to air
+					"%type of block at block west event-location%" is "bed_block":
+						set block at block west event-location to air
+					"%type of block at block east event-location%" is "bed_block":
+						set block at block east event-location to air
 			else:
 				set {_finder} to 200
 				set {_name} to "?"
@@ -715,15 +723,15 @@ on break:
 						set {_finder} to distance between location of event-block and {_Location::%loop-number%}
 						set {_name} to "%loop-number%"
 				{_name} is not "?"
+				set block at {_Location::%{_name}%} to air
 				"%type of block at block north {_Location::%{_name}%}%" is "bed_block":
-					set block at block north event-block to air
+					set block at block north {_Location::%{_name}%} to air
 				"%type of block at block south {_Location::%{_name}%}%" is "bed_block":
-					set block at block south event-block to air
+					set block at block south {_Location::%{_name}%} to air
 				"%type of block at block west {_Location::%{_name}%}%" is "bed_block":
-					set block at block west event-block to air
+					set block at block west {_Location::%{_name}%} to air
 				"%type of block at block east {_Location::%{_name}%}%" is "bed_block":
-					set block at block east event-block to air
-				
+					set block at block east {_Location::%{_name}%} to air
 				set {_x1} to checkFileSKY("Datas.Spawns.%{_name}%.x", "maps/%{_CurrentMap}%") parsed as number
 				set {_y1} to checkFileSKY("Datas.Spawns.%{_name}%.y", "maps/%{_CurrentMap}%") parsed as number
 				set {_z1} to checkFileSKY("Datas.Spawns.%{_name}%.z", "maps/%{_CurrentMap}%") parsed as number
@@ -742,6 +750,7 @@ on break:
 						if {_featureSaver} is not "true":
 							playSoundSKY({_Player::%loop-value%}, "WITHER_DEATH", "WITHER_DEATH", 1)
 							send title "%{SW::Messages::%{_lang.%loop-value%}%::Your_Bed_Destroy_Feature_1}%" with subtitle "%{SW::Messages::%{_lang.%loop-value%}%::Your_Bed_Destroy_2}%" for 2 seconds to {_Player::%loop-value%}
+							set block at {_Location::%{_name}%} to air
 							"%type of block at block north {_Location::%{_name}%}%" is "bed_block":
 								set block at block north {_Location::%{_name}%} to air
 							"%type of block at block south {_Location::%{_name}%}%" is "bed_block":
@@ -1244,16 +1253,17 @@ function upgradeMenu(Player: player):
 			set {_buylore} to {SW::Messages::%{_lang}%::ItemShop_Click_Used}	
 		format gui slot {_z} of {_Player} with {SW::Messages::Features_Item::%loop-number-1%} named "%{_prefix}%%{SW::Messages::%{_lang}%::Features_Name::%loop-number-1%}%" with lore "%{SW::Messages::%{_lang}%::Features_Lore::%loop-number-1%}%%{_cost}%%{_buylore}%" to close then run function upgradeMenuBuy({_Player}, 1, loop-number)
 		add 1 to {_z}			
-on rightclick on villager:
+on rightclick on player:
 	cancel event
-	if name of clicked villager is "%{SW::Messages::Item_Shop_NPC}%":
+	if name of clicked player is "%{SW::Messages::Item_Shop_NPC}%":
 		wait 2 tick
 		itemShop(player, 0)
-	else if name of clicked villager is "%{SW::Messages::Upgrade}%":
+	else if name of clicked player is "%{SW::Messages::Upgrade}%":
 		wait 1 tick
 		upgradeMenu(player)
-on damage of villager:
+on damage of player:
 	attacker is a player
+	name of victim is "%{SW::Messages::Item_Shop_NPC}%" or "%{SW::Messages::Upgrade}%"
 	attacker has permission "minigameapi.admin":
 		stop
 	cancel event
@@ -1270,7 +1280,6 @@ on damage:
 	if {_Arena} is not "*":
 		damage cause is void:
 			wait 3 ticks
-			writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "*", "arenas/%{_Arena}%")	
 			kill the victim
 			stop
 		if checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "0" or "1":
@@ -1281,10 +1290,6 @@ on damage:
 				set {_partyv} to checkFileSKY("Datas.Players-List.%uuid of victim%.HasParty", "arenas/%{_Arena}%")
 				"%{_partya}%" is "%{_partyv}%"
 				cancel event
-			if attacker is a player:
-				writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "%attacker%", "arenas/%{_Arena}%")	
-			else:
-				writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "*", "arenas/%{_Arena}%")	
 	attacker is a player
 	checkFileSKY("Players.Spectator", "playerdata/%uuid of attacker%") is not "*":
 		cancel event
@@ -1457,6 +1462,7 @@ on load:
 	loop {_arenas::*}:
 		set {_file} to "%loop-value%"
 		replace all ".yml" with "" in {_file}	
+		checkFileSKY("Datas.Status", "arenas/%{_file}%") is not "0"
 		debugArena("%{_file}%", "time")	
 		wait 1 seconds
 	#refreshValuesSQL("2")

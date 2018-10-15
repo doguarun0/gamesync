@@ -1,6 +1,6 @@
 ﻿on load:
 	set {minigamesapi::game} to "SKYWARS"
-	set {minigamesapi::game_version} to "10ekim"
+	set {minigamesapi::game_version} to "a1110"
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"
@@ -18,8 +18,93 @@
 	set {SW::Tier_3_Chance} to 20
 	set {SW::Tier_4_Chance} to 10
 	set {SW::Empty_Slot_Chance} to 30
-	set {SW::King_Time} to 3
+	set {SW::Event-Timer} to 220
 	#
+function eventAPI(Arena: text):
+	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
+	set {_UpgradeSeconds} to checkFileSKY("Datas.Event-Timer", "arenas/%{_Arena}%") parsed as number
+	while 1 is 1:
+		if checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2":
+			if {_UpgradeSeconds} is greater than 0:
+				remove 1 from {_UpgradeSeconds}
+				writeFileSKY("Datas.Event-Timer", "%{_UpgradeSeconds}%", "arenas/%{_Arena}%")	
+			else:
+				Set {_Tier} to checkFileSKY("Datas.Event-Tier", "arenas/%{_Arena}%") parsed as number		
+				add 1 to {_Tier}
+				if {_Tier} is 1:
+					set {_x} to checkFileSKY("Datas.Center.x", "maps/%{_CurrentMap}%") parsed as number
+					set {_y} to checkFileSKY("Datas.Center.y", "maps/%{_CurrentMap}%") parsed as number
+					set {_z} to checkFileSKY("Datas.Center.z", "maps/%{_CurrentMap}%") parsed as number
+					set {_w} to checkFileSKY("Datas.Center.world", "maps/%{_CurrentMap}%") parsed as world
+					set {_Location} to location of block at location ({_x}, {_y}, {_z}) in world {_w}  
+					set {_item} to player head with custom nbt "{display:{Name:""Zombie King""},SkullOwner:{Id:""42eaceaf-d8ec-4b36-a157-1cc7eed6367c"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU1ODJlZDUxMmE4Y2VhOWIxN2ZmYzMxY2ExMmI4NmYyYWJjY2Y4M2E2MjJmYjdkMTViNWYxNzFmNTFiYjY0In19fQ==""}]}}}"
+					spawn 1 zombie at {_Location}
+					sendMessageArena("%{_Arena}%", "King_Born", "*", false)
+					set name of spawned zombie to "%{SW::Zombie_King}%"
+					set maximum health of last spawned zombie to 30
+					set health of last spawned zombie to 30
+					set last spawned zombie's walking speed to 7
+					set last spawned zombie's tool to diamond sword of sharpness 4 and unbreaking 1000
+					set last spawned zombie's helmet to {_item}
+					set last spawned zombie's chestplate to gold chestplate of protection 6 and unbreaking 1000
+					set last spawned zombie's leggings to gold leggings of protection 6 and unbreaking 1000
+					set last spawned zombie's boots to gold boots of protection 6 and unbreaking 1000
+					loop 4 times:
+						strike lightning effect at {_Location}
+						wait 12 ticks
+				else if {_Tier} is 2:
+					set {_block.1} to "87" parsed as material
+					set {_block.2} to "112" parsed as material
+					set {_block.3} to "153" parsed as material
+					set {_block.4} to "44:6" parsed as material
+					set {_pos1.x} to checkFileSKY("Datas.Pos-1.x", "maps/%{_CurrentMap}%") parsed as number
+					set {_pos1.y} to checkFileSKY("Datas.Pos-1.y", "maps/%{_CurrentMap}%") parsed as number
+					set {_pos1.z} to checkFileSKY("Datas.Pos-1.z", "maps/%{_CurrentMap}%") parsed as number
+					set {_pos1.w} to checkFileSKY("Datas.Pos-1.world", "maps/%{_CurrentMap}%") parsed as world
+					set {_pos2.x} to checkFileSKY("Datas.Pos-2.x", "maps/%{_CurrentMap}%") parsed as number
+					set {_pos2.y} to checkFileSKY("Datas.Pos-2.y", "maps/%{_CurrentMap}%") parsed as number
+					set {_pos2.z} to checkFileSKY("Datas.Pos-2.z", "maps/%{_CurrentMap}%") parsed as number
+					set {_pos2.w} to checkFileSKY("Datas.Pos-2.world", "maps/%{_CurrentMap}%") parsed as world
+					set {_w} to checkFileSKY("Datas.World", "maps/%{_CurrentMap}%") parsed as world
+					wait 1 tick
+					set {_N1} to location ({_pos1.x}, {_pos1.y}, {_pos1.z}) in world {_w}
+					set {_N2} to location ({_pos2.x}, {_pos2.y}, {_pos2.z}) in world {_w}
+					set {_Counter} to 0
+					sendMessageArena("%{_Arena}%", "Apo_Started", "*", false)
+					execute console command "/time set night %{_w}%"
+					loop blocks within {_N1} to {_N2}:
+						type of loop-block is not air or chest or trapped chest
+						if "%type of loop-block%" is "water":
+							set block at loop-block to air
+							wait 1 tick
+							set block at loop-block to lava
+						else if "%type of loop-block%" contains "leave":
+							set block at loop-block to glowstone
+						else:
+							set block at loop-block to {_block.%random integer from 1 to 4%}
+						add 1 to {_Counter}
+						{_Counter} is 50:
+							set {_Counter} to 0
+							wait 5 ticks
+					set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
+					loop 4 times:
+						set {_r} to random integer from 1 to {_Maximum}
+						set {_x} to checkFileSKY("Datas.Spawns.%{_r}%.x", "maps/%{_CurrentMap}%") parsed as number
+						set {_y} to checkFileSKY("Datas.Spawns.%{_r}%.y", "maps/%{_CurrentMap}%") parsed as number
+						set {_z} to checkFileSKY("Datas.Spawns.%{_r}%.z", "maps/%{_CurrentMap}%") parsed as number
+						set {_w} to checkFileSKY("Datas.Spawns.%{_r}%.world", "maps/%{_CurrentMap}%") parsed as world
+						set {_Location} to location of block at location ({_x}, {_y}, {_z}) in world {_w}  
+						spawn 1 ghast at {_Location}
+						set maximum health of last spawned ghast to 15
+						set health of last spawned ghast to 15
+				writeFileSKY("Datas.Event-Tier", "%{_Tier}%", "arenas/%{_Arena}%")	
+				{_Tier} is greater or equal to 2: 
+					stop
+				writeFileSKY("Datas.Event-Timer", "%{SW::Event-Timer}%", "arenas/%{_Arena}%")
+				set {_UpgradeSeconds} to {SW::Event-Timer}
+			wait 1 second
+		else:
+			stop		
 function glassAPI(Arena: text, Type: text):
 	set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
 	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
@@ -101,7 +186,6 @@ function scoreboardAPI(Player: player):
 	set {_lang} to language of {_Player}
 	set {_UUID} to "%uuid of {_Player}%"
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
-	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
 	set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
 	set {_Mode} to checkFileSKY("Datas.Type", "arenas/%{_Arena}%")
 	add "&1" and "&2" and "&3" and "&4" and "&5" and "&6" and "&7" and "&8" and "&9" and "&a" and "&b" and "&c" and "&d" and "&e" and "&f" to {_c::*}
@@ -111,7 +195,7 @@ function scoreboardAPI(Player: player):
 	wait 1 ticks
 	set title of skoreboard {_Player} to "%{SW::SC_Header}%"
 	wait 1 ticks
-	reset slots numbers between 1 and 11 of skoreboard {_Player}
+	reset slots numbers between 1 and 10 of skoreboard {_Player}
 	
 	while {_Player} is online:
 		set {_control} to false
@@ -128,6 +212,7 @@ function scoreboardAPI(Player: player):
 				set {_k} to checkFileSKY("Datas.Spectator-List.%{_UUID}%.Kills", "arenas/%{_Arena}%")
 				set {_c} to checkFileSKY("Datas.Spectator-List.%{_UUID}%.Chests", "arenas/%{_Arena}%")	
 			set {_x} to checkFileSKY("Datas.Current-Time", "arenas/%{_Arena}%") parsed as integer
+			set {_Tier} to checkFileSKY("Datas.Event-Tier", "arenas/%{_Arena}%") parsed as number
 			{_x} is not set:
 				set {_x} to 0
 			if {_x} is greater than 60:
@@ -141,32 +226,30 @@ function scoreboardAPI(Player: player):
 				set {_time} to "%{_dk}%:%{_sn}%"
 			else:
 				set {_time} to "%{_x}%"		
-			set {_z} to checkFileSKY("Datas.King-Time", "arenas/%{_Arena}%") parsed as number
-			{_z} is not set:
-				set {_z} to 0
-			if {_z} is greater than 60:
-				set {_dk} to rounded down {_z}/60
-				set {_mid} to {_dk}*60
-				set {_sn} to {_z}-{_mid}
-				{_sn} is less than 10:
-					set {_sn} to "0%{_sn}%"
-				{_dk} is less than 10:
-					set {_dk} to "0%{_dk}%"
-				set {_king} to "%{_dk}%:%{_sn}%"
-			else if {_z} is greater than 0:
-				set {_king} to "%{_z}%"		
-			else if {_z} is 0:
-				set {_king} to "%{SW::King_Alive}%"
-			else if {_z} is -1:
-				set {_king} to "%{SW::King_Death}%"
+			set {_z} to checkFileSKY("Datas.Event-Timer", "arenas/%{_Arena}%") parsed as number
+			set {_etime} to ""
+			{_Tier} is not 2:
+				{_z} is not set:
+					set {_z} to 0
+				if {_z} is greater than 60:
+					set {_dk} to rounded down {_z}/60
+					set {_mid} to {_dk}*60
+					set {_sn} to {_z}-{_mid}
+					{_sn} is less than 10:
+						set {_sn} to "0%{_sn}%"
+					{_dk} is less than 10:
+						set {_dk} to "0%{_dk}%"
+					set {_etime} to " (%{_dk}%:%{_sn}%)"
+				else if {_z} is greater than 0:
+					set {_etime} to " (%{_z}%)"		
+			set {_t} to {_Tier}+1
 			set {_text.1} to "&7%{_Mode}% &8%day%/%month%/%year%"
-			set {_text.3} to "%{SW::Messages::%{_lang}%::SC_InGame_Event}%&e%{_king}%"
-			set {_text.4} to "%{SW::Messages::%{_lang}%::SC_InGame_Map}%&e%{_CurrentMap}%"
-			set {_text.6} to "%{SW::Messages::%{_lang}%::SC_InGame_Time}%&e%{_time}%"
-			set {_text.7} to "%{SW::Messages::%{_lang}%::SC_InGame_Players}%&e%size of {_PlayerList::*}%/%{_Maximum}%"
-			set {_text.9} to "%{SW::Messages::%{_lang}%::SC_InGame_YourKills}%&e%{_k}%"
-			set {_text.10} to "%{SW::Messages::%{_lang}%::SC_InGame_YourChests}%&e%{_c}%"
-			loop 11 times:
+			set {_text.3} to "%{SW::Messages::%{_lang}%::SC_InGame_Upgrades}%&e%{SW::Messages::%{_lang}%::SWEvent_%{_t}%}%%{_etime}%"
+			set {_text.5} to "%{SW::Messages::%{_lang}%::SC_InGame_Time}%&e%{_time}%"
+			set {_text.6} to "%{SW::Messages::%{_lang}%::SC_InGame_Players}%&e%size of {_PlayerList::*}%/%{_Maximum}%"
+			set {_text.8} to "%{SW::Messages::%{_lang}%::SC_InGame_YourKills}%&e%{_k}%"
+			set {_text.9} to "%{SW::Messages::%{_lang}%::SC_InGame_YourChests}%&e%{_c}%"
+			loop 10 times:
 				{_text.%loop-number%} is not set:
 					set {_text.%loop-number%} to "%{_c::%loop-number%}%"
 				set slot loop-number of skoreboard {_Player} to {_text.%loop-number%}
@@ -181,7 +264,9 @@ function debugArena(Arena: text, Type: text):
 		stop
 	writeFileSKY("Datas.Status", "3", "arenas/%{_Arena}%")	
 	writeFileSKY("Datas.Current-Time", "*", "arenas/%{_Arena}%")
-	writeFileSKY("Datas.King-Time", "-1", "arenas/%{_Arena}%")
+	writeFileSKY("Datas.Event-Timer", "*", "arenas/%{_Arena}%")
+	loop all ghasts:
+		kill loop-entity
 	set {_Mode} to checkFileSKY("Datas.Type", "arenas/%{_Arena}%")
 	set {_Bungee} to {SW::Bungee_Mode}
 	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
@@ -458,7 +543,6 @@ on death of zombie or skeleton or horse:
 	else if name of victim is "%{SW::Zombie_King}%":
 		set {_BungeeArena} to {SW::Bungee_Arena}
 		{_BungeeArena} is not "*"
-		writeFileSKY("Datas.King-Time", "-1", "arenas/%{_BungeeArena}%")
 		if attacker is a player:
 			strike lightning effect at victim's location
 			wait 1 ticks
@@ -476,36 +560,6 @@ on death of zombie or skeleton or horse:
 				drop {_Item} at victim's location
 		else:
 			sendMessageArena("%{_BungeeArena}%", "Zombie_King_Dead", "*", false)
-function zombieKingAPI(Arena: text):
-	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
-	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
-	set {_x} to checkFileSKY("Datas.Center.x", "maps/%{_CurrentMap}%") parsed as number
-	set {_y} to checkFileSKY("Datas.Center.y", "maps/%{_CurrentMap}%") parsed as number
-	set {_z} to checkFileSKY("Datas.Center.z", "maps/%{_CurrentMap}%") parsed as number
-	set {_w} to checkFileSKY("Datas.Center.world", "maps/%{_CurrentMap}%") parsed as world
-	set {_Location} to location of block at location ({_x}, {_y}, {_z}) in world {_w}  
-	set {_item} to player head with custom nbt "{display:{Name:""Zombie King""},SkullOwner:{Id:""42eaceaf-d8ec-4b36-a157-1cc7eed6367c"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTU1ODJlZDUxMmE4Y2VhOWIxN2ZmYzMxY2ExMmI4NmYyYWJjY2Y4M2E2MjJmYjdkMTViNWYxNzFmNTFiYjY0In19fQ==""}]}}}"
-	spawn 1 zombie at {_Location}
-	sendMessageArena("%{_Arena}%", "King_Born", "*", false)
-	set name of spawned zombie to "%{SW::Zombie_King}%"
-	#set maximum health of last spawned zombie to 30
-	#set health of last spawned zombie to 30
-	set last spawned zombie's walking speed to 6
-	set last spawned zombie's tool to diamond sword of sharpness 4 and unbreaking 1000
-	set last spawned zombie's helmet to {_item}
-	set last spawned zombie's chestplate to gold chestplate of protection 6 and unbreaking 1000
-	set last spawned zombie's leggings to gold leggings of protection 6 and unbreaking 1000
-	set last spawned zombie's boots to gold boots of protection 6 and unbreaking 1000
-	loop 4 times:
-		strike lightning effect at {_Location}
-		wait 12 ticks
-	#set {_z} to last spawned zombie
-	#wait 1 tick
-	#spawn a adult horse at {_Location}
-	#set name of last spawned horse to "%{SW::Zombie_King_Horse}%"
-	#make the last spawned horse wear a saddle
-	#wait 1 tick
-	#make {_z} ride last spawned horse
 on damage of zombie:
 	if attacker is a player:
 		victim is a zombie
@@ -619,7 +673,7 @@ function startGame(Arena: text, Type: text):
 		set {_lang} to language of {_Player}
 		playSoundSKY({_player}, "BLOCK_NOTE_PLING", "NOTE_PLING", 1)
 		send title "%{SW::Messages::%{_lang}%::Title_Game_Started}%" with subtitle "%{SW::Messages::%{_lang}%::SubTitle_Game_Started}%" for 5 seconds to {_Player}	
-		apply potion of resistance of tier 10 to {_Player} for 6 seconds
+		apply potion of resistance of tier 10 to {_Player} for 3 seconds
 		set level of {_Player} to 0
 		clear {_Player}'s inventory
 		scoreboardAPI({_Player}) 
@@ -630,28 +684,21 @@ function startGame(Arena: text, Type: text):
 	execute console command "/time set 0 %{_World}%"
 	delete all dropped items in {_World}
 	writeFileSKY("Datas.Chests-Location", "*", "arenas/%{_Arena}%")
+	writeFileSKY("Datas.Event-Tier", "0", "arenas/%{_Arena}%")	
+	writeFileSKY("Datas.Event-Timer", "%{SW::Event-Timer}%", "arenas/%{_Arena}%")
+	eventAPI({_Arena})
 	set {_GameTimeMinutes} to {SW::Game_Time}
-	set {_KingTimeMinutes} to {SW::King_Time}
 	set {_Seconds} to 1
 	set {_GameTime} to {_GameTimeMinutes}*60
-	set {_KingTime} to {_KingTimeMinutes}*60
 	loop {_GameTime} times:
 		checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
 		{_GameTimeMinutes} is greater than 0
-		{_KingTime} is greater or equal to 0:
-			writeFileSKY("Datas.King-Time", "%{_KingTime}%", "arenas/%{_Arena}%")
-			remove 1 from {_KingTime}
 		writeFileSKY("Datas.Current-Time", "%{_GameTime}%", "arenas/%{_Arena}%")
 		remove 1 from {_GameTime}
 		{_Seconds} is greater or equal to 60:
 			remove 1 from {_GameTimeMinutes}
 			{_GameTimeMinutes} > 0:
 				sendMessageArena("%{_Arena}%", "Game_Finish_Time", "{TIME}^%{_GameTimeMinutes}%", true)
-			{_KingTime} is greater or equal to 0:
-				remove 1 from {_KingTimeMinutes}
-				{_KingTimeMinutes} is less or equal to 0:
-					delete {_KingTimeMinutes}
-					zombieKingAPI({_Arena})
 			set {_Seconds} to 0
 		add 1 to {_Seconds}
 		wait 1 second
@@ -671,6 +718,7 @@ on death of player:
 	wait 1 ticks
 	set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
 	undisguise victim
+	specAPI(victim, "%{_Arena}%", true)
 	writeFileSKY("Datas.Players-List.%uuid of victim%.Revive", "true", "arenas/%{_Arena}%")
 	writeFileSKY("Datas.Players-List.%uuid of victim%.Reviving", "*", "arenas/%{_Arena}%")
 	remove slowness from the victim
@@ -695,8 +743,7 @@ on death of player:
 	writeFileSKY("Players.Arena-Name", "*", "playerdata/%uuid of victim%")
 	writeFileSKY("Players.Spectator", "*", "playerdata/%uuid of victim%")
 	#set {_xzsize} to size of {_PlayerList::*}
-	#if {_xzsize}-1 > 0: 
-	specAPI(victim, "%{_Arena}%", true)
+	#if {_xzsize}-1 > 0:
 	#else:
 	#	set {_r} to random integer from 1 to {_Maximum}
 	#	set {_x} to checkFileSKY("Datas.Spawns.%{_r}%.x", "maps/%{_CurrentMap}%") parsed as number
@@ -790,8 +837,7 @@ on damage:
 				checkFileSKY("Datas.Players-List.%uuid of victim%.Revive", "arenas/%{_Arena}%") is "*"
 				cancel event
 				writeFileSKY("Datas.Players-List.%uuid of victim%.Revive", "true", "arenas/%{_Arena}%")
-				writeFileSKY("Datas.Players-List.%uuid of victim%.Reviving", "true", "arenas/%{_Arena}%")
-				send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Pig}%" to victim		
+				writeFileSKY("Datas.Players-List.%uuid of victim%.Reviving", "true", "arenas/%{_Arena}%")	
 				disguise victim to pig
 				set victim's health to 10
 				set victim's disguise self view to false
@@ -986,13 +1032,11 @@ on chat:
 	set {_message} to message
 	{_message} contains "%%":
 		replace all "%%" with "％" in {_message}
-	set message format to "&a%display name of player% &8&l> &f%{_message}%"	
+	set message format to "&7%display name of player% &8➵ &7%{_message}%"	
 on skript load:
 	wait 1 ticks
 	execute console command "/sk reload minigames_2api"
 on load:
-	set {SW::King_Alive} to "&8[&a&l✓&8]"
-	set {SW::King_Death} to "&8[&c&l✗&8]"
 	set {SW::Zombie_King} to "&e&lTHE ZOMBIE KING"
 	set {SW::Zombie_King_Skeleton} to "&7&oAmbassador Archer"
 	set {minigamesapi::shortnamegame} to "%{minigamesapi::game}%" to all lower case

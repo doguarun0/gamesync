@@ -626,8 +626,6 @@ function refreshDatas(arena: text):
 		set {_z1} to checkFileSKY("Datas.Town.%loop-value%.z", "maps/%{_CurrentMap}%") parsed as number
 		set {_w1} to checkFileSKY("Datas.Town.%loop-value%.world", "maps/%{_CurrentMap}%") parsed as world
 		set {_Loc.%loop-value%} to location of block at location ({_x1}, {_y1}, {_z1}) in world {_w1}			
-		set block at block below {_Loc.%loop-value%} to "%{SW::Messages::Kingdom_Icon::*}%" parsed as material
-		set block at {_Loc.%loop-value%} to dragon egg
 		holo object "Town-%loop-value%" exists:
 			delete holo object "Town-%loop-value%"
 			wait 3 tick
@@ -638,6 +636,9 @@ function refreshDatas(arena: text):
 		create holo object "%{_msg}%" with id "Town-%loop-value%" at block 2 above {_Loc.%loop-value%}	
 		refreshMineField({_Arena}, loop-value, true)
 		remove "%loop-value%" from {_Towns::*}
+		set block at block below {_Loc.%loop-value%} to "%{SW::Messages::Kingdom_Icon::*}%" parsed as material
+		wait 3 tick
+		set block at {_Loc.%loop-value%} to dragon egg
 on right click with magma cream:
 	set {_lang} to language of player
 	name of player's tool is "%{SW::Messages::%{_lang}%::Item_Mines}%"
@@ -672,10 +673,6 @@ on damage:
 				cancel event
 				stop
 			#
-			if attacker is a player:
-				writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "%attacker%", "arenas/%{_Arena}%")	
-			else:
-				writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "*", "arenas/%{_Arena}%")	
 	attacker is a player
 	checkFileSKY("Players.Spectator", "playerdata/%uuid of attacker%") is not "*":
 		cancel event		

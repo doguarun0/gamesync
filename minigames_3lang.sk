@@ -1,5 +1,5 @@
 on load:
-	set {SW::Lang_Ver} to "9ekim"
+	set {SW::Lang_Ver} to "1110"
 	set {SW::Messages::EN::No_Permission} to "§7You do not have permission for this."
 	set {SW::Messages::EN::Enter_Arena_Name} to "§7Enter the arena name."
 	set {SW::Messages::EN::Char_Error} to "§7This arena name contains unsupported character(s)."
@@ -82,8 +82,9 @@ on load:
 	set {SW::Messages::EN::Game_Finish_Time} to "§e{TIME} minute(s) §7to finish the game."
 	set {SW::Messages::EN::Game_Finished_Time} to "§c§lTIME IS OVER, NO ONE WON!"
 	set {SW::Messages::EN::Death_Type_Killed} to "§e{VICTIM}§7 was killed by §c{ATTACKER}"
-	set {SW::Messages::EN::Death_Type_Died} to "§e{VICTIM} §7died."
+	set {SW::Messages::EN::Death_Type_Died} to "§e{VICTIM} §7has died."
 	set {SW::Messages::EN::Death_Type_Suicide} to "§e{VICTIM} §7killed himself."
+	set {SW::Messages::EN::Death_Type_Suicide_FinalKill} to "&8&l(FINAL KILL) §e{VICTIM} §7killed himself."
 	set {SW::Messages::EN::Title_Dead} to "§cYOU DIED!"
 	set {SW::Messages::EN::SubTitle_Dead} to "You lose."
 	set {SW::Messages::EN::Game_Debug_Broadcast} to "§e{ARENA} §7arena has restarted."
@@ -336,6 +337,8 @@ on load:
 	set {SW::Messages::EN::Bed_Event_Tier_3} to "Upgrade III"
 	set {SW::Messages::EN::Bed_Event_Tier_4} to "Bed Destroy"
 	set {SW::Messages::EN::Death_Type_Killed_FinalKill} to "&8&l(FINAL KILL) §e{VICTIM}§7 was killed by §c{ATTACKER} §7[§f{PLAYERS}§7/§f{MAX}§7]"
+	set {SW::Messages::EN::Death_Type_Died_Final_Kill} to "&8&l(FINAL KILL) §e{VICTIM}§7 has died. §7[§f{PLAYERS}§7/§f{MAX}§7]"
+	
 	set {SW::Messages::EN::You_Died} to "&7You died and eliminated from game!"
 	set {SW::Messages::EN::You_Died_With_Bed} to "&7You died! &7You will be respawned again."
 	set {SW::Messages::EN::Title_Dead} to "&4YOU DIED!"
@@ -520,7 +523,7 @@ on load:
 	set {SW::Messages::EN::Numbers_3} to "&e3"
 	set {SW::Messages::EN::Numbers_2} to "&a2"
 	set {SW::Messages::EN::Numbers_1} to "&a1"
-	set {SW::Messages::EN::Reviving_1} to "&f&lReviving in &d&l{TIME}&f&l&n..."
+	set {SW::Messages::EN::Reviving_1} to "&fReviving in &d{TIME}&f..."
 	set {SW::Messages::EN::Reviving_2} to "&a&l✓"
 	set {SW::Messages::EN::Reviving_2_Title} to "&7You have respawned again!"
 	set {SW::Messages::EN::ItemShop_Click_See} to "||||&eClick to check these items."
@@ -571,4 +574,15 @@ on load:
 	set {SW::Messages::EN::Break_Special} to "&7You only can break nexus, ores, leaves and logs."
 	set {SW::Messages::EN::Capture_Wait_Timer} to "&7You have to wait &c{TIME} &7to capture again."
 	set {SW::Messages::EN::Your_Town_Under_Capture} to "&7Your &f{TOWN} &7town is capturing by {KINGDOM} &7kingdom."
+	#
+	set {SW::Messages::EN::Lobby_SC_Version} to "&f☼ Version: "
+	set {SW::Messages::EN::Lobby_SC_StatusText_0} to "   &eWaiting for players..."
+	set {SW::Messages::EN::Lobby_SC_StatusText_1} to "      &eStarting in {T}..."
+	#
+	set {SW::Messages::EN::SWEvent_1} to "Zombie King"
+	set {SW::Messages::EN::SWEvent_2} to "Apocalypse"
+	set {SW::Messages::EN::Apo_Started} to "&c&lTHE APOCALYPSE &7has started!"
+	set {SW::Messages::EN::Zombie_King_Player} to "§e&lTHE ZOMBIE KING§7 has slain by §c{ATTACKER}&7."
+	set {SW::Messages::EN::Zombie_King_Dead} to "§e&lTHE ZOMBIE KING§7 has slain&7."
+	set {SW::Messages::EN::King_Born} to "§e&lTHE ZOMBIE KING§7 has been spawned at main island."
 	
