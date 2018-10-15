@@ -1748,8 +1748,9 @@ function xpAPI(Player: player, Win: boolean):
 	set {_1lore} to "&f%{_exp}%/%{_formula}% ➜ LvL %{_level}+1%"
 	set {_normalCol} to "&8"
 	{_exp} is greater or equal to {_formula}: 
+		set {_rec} to {_exp}-{_formula}
 		degerEkle({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", 1, "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
-		degerAyarla({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", "0", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
+		degerAyarla({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", "%{_rec}%", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
 		set {_msg} to {SW::Messages::%{_lang}%::Level_Up_Header}
 		replace all "{LEVEL}" with "%{_level}+1%" in {_msg}
 		set {_1} to a new text component with "%{_msg}%"  
@@ -1758,8 +1759,9 @@ function xpAPI(Player: player, Win: boolean):
 		set {_1lore} to "%{_msg}%"
 		set {_normalCol} to "&0"
 	{_mainexp} is greater or equal to {_formula}: 	
+		set {_rec} to {_mainexp}-{_formula}
 		degerEkle({_Player}, "leveling", "main_level", 1, "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
-		degerAyarla({_Player}, "leveling", "main_exp", "0", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
+		degerAyarla({_Player}, "leveling", "main_exp", "%{_rec}%", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
 	
 		
 	if {_exp} is between 0 and 100000:
