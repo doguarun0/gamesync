@@ -1,7 +1,7 @@
 ﻿on load:
 	#
 	set {minigamesapi::game} to "BEDWARS"
-	set {minigamesapi::game_version} to "alpha/14.10"
+	set {minigamesapi::game_version} to "a/17.10"
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"
@@ -593,12 +593,16 @@ on death of player:
 	else:
 		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Died_With_Bed}%" to victim	
 	set {_a} to attacker
-	degerEkle(victim, "%{minigamesapi::shortnamegame}%", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+	
+	JSONdegerEkle(victim, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Deaths", 1)
+	
 	set {_KillsV} to a value "Datas.Players-List.%uuid of victim%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
 	if attacker is not victim:
 		set {_attackerArena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of attacker%")
 		if {_attackerArena} is not "*":
-			degerEkle(attacker, "%{minigamesapi::shortnamegame}%", "Kills", 1, "%replaceMessage(attacker, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+			
+			JSONdegerEkle(attacker, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Kills", 1)
+			
 			degerEkleSKY("Datas.Players-List.%uuid of attacker%.Kills", 1, "arenas/%{_Arena}%")
 			if {_TeamStatus} is not "*": 	
 				sendMessageArena("%{_Arena}%", "Death_Type_Killed_FinalKill", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
@@ -785,7 +789,7 @@ on break:
 				broadcast ""
 				broadcastServer("Bed_Destroy", "{BY}^%player%~{TEAM}^%{SW::Messages::%{_lang}%::Team_%{_name}%_Name}%", false)	
 				broadcast ""				
-				degerEkle(player, "%{minigamesapi::shortnamegame}%", "BreakedBeds", 1, "%replaceMessage(player, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+				JSONdegerEkle(player, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "BreakedBeds", 1)
 				degerEkleSKY("Datas.Players-List.%uuid of player%.BreakedBeds", 1, "arenas/%{_Arena}%")
 				{_found} is false:
 					size of {_PlayerList::*} is 1

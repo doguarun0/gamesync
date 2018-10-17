@@ -7,15 +7,11 @@ on load:
 	set {minigamesapi::MySQL} to true
 	#
 	# Minigames API MYSQL
-	{minigamesapi::shortnamegame} is set:
-		set {MySQLAPI::%{minigamesapi::shortnamegame}%::tablo} to "%{minigamesapi::shortnamegame}%_stats"
-		set {MySQLAPI::%{minigamesapi::shortnamegame}%::user} to "user_uuid"
-		set {MySQLAPI::%{minigamesapi::shortnamegame}%::default} to "(`%{MySQLAPI::%{minigamesapi::shortnamegame}%::user}%`, `user_name`) VALUES ('{UUID}', '{PLAYER}');"
-		set {_stats.bedwars} to ",`BreakedBeds` int(50) NOT NULL DEFAULT '0'"
-		set {_stats.kingdoms} to ",`CapturedNexus` int(50) NOT NULL DEFAULT '0',`CapturedTown` int(50) NOT NULL DEFAULT '0'"
-		set {_stats.skywars} to ",`Kits` int(50) NOT NULL DEFAULT '0',`Credits` int(50) NOT NULL DEFAULT '0'"
-		set {_read} to "CREATE TABLE IF NOT EXISTS `%{MySQLAPI::%{minigamesapi::shortnamegame}%::tablo}%` (`%{MySQLAPI::%{minigamesapi::shortnamegame}%::user}%` varchar(255),`user_name` varchar(255),`Kills` int(40) NOT NULL DEFAULT '0',`Deaths` int(50) NOT NULL DEFAULT '0',`Played` int(40) NOT NULL DEFAULT '0',`Wins` int(40) NOT NULL DEFAULT '0'%{_stats.%{minigamesapi::shortnamegame}%}%,UNIQUE KEY `user_uuid` (user_uuid),UNIQUE KEY `user_name` (`user_name`))"
-		execute unsafe {_read} in {sql1} 
+	set {MySQLAPI::minigamesapi::tablo} to "minigames_stats"
+	set {MySQLAPI::minigamesapi::user} to "user_uuid"
+	set {MySQLAPI::minigamesapi::default} to "(`%{MySQLAPI::minigamesapi::user}%`, `user_name`) VALUES ('{UUID}', '{PLAYER}');"
+	set {_read} to "CREATE TABLE IF NOT EXISTS `%{MySQLAPI::minigamesapi::tablo}%` (`%{MySQLAPI::minigamesapi::user}%` varchar(255),`user_name` varchar(255),`skywars_info` TEXT,`bedwars_info` TEXT,`kingdoms_info` TEXT,UNIQUE KEY `user_uuid` (user_uuid),UNIQUE KEY `user_name` (`user_name`))"
+	execute unsafe {_read} in {sql1} 
 	#
 	# Leveling MYSQL
 	set {MySQLAPI::leveling::tablo} to "UsersLEVELS"
@@ -91,6 +87,23 @@ function degerEkleSKY(variableName: text, value: number, fileDir: text):
 	writeFileSKY("%{_variableName}%", "%{_v}%", "%{_fileDir}%")       
 function veriCikarSKY(variableName: text, value: text, fileDir: text): 
 	delete yaml value "%{_variableName}%.%{_value}%" from file "plugins/%{minigamesapi::game}%/%{_fileDir}%.yml"
+function JSONdegerOku(Player: player, Engine: text, Column: text, Variable: text) :: text:
+	set {_var} to degerOku({_Player}, "%{_Engine}%", "%{_Column}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%", true, "")
+	copy json "%{_var}%" to {_values::*}
+	if {_values::%{_Variable}%} is set:
+		return "%{_values::%{_Variable}%}%"
+	else:
+		return "*"
+function JSONdegerEkle(Player: player, Engine: text, Column: text, Variable: text, Number: number):
+	set {_var} to degerOku({_Player}, "%{_Engine}%", "%{_Column}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%", true, "")
+	copy json "%{_var}%" to {_values::*}
+	set {_oNum} to "%{_values::%{_Variable}%}%" parsed as number
+	{_oNum} is not set:
+		set {_oNum} to 0
+	add {_Number} to {_oNum}
+	set {_values::%{_Variable}%} to {_oNum}
+	set {_text} to {_values::*}'s serialized json form
+	degerAyarla({_Player}, "%{_Engine}%", "%{_Column}%", "%{_text}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%")
 function getPlayersListPartiesSKY(player: offline player, arena: text) :: text:
 	set {_UUID} to "%uuid of {_player}%"
 	set {_string} to a value "Datas.Players-List.%{_UUID}%.Players" get of "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml"
@@ -773,8 +786,7 @@ function PageAPIGame(Player: player, Type: text, page: number):
 			add {_ID} to {_Variables::*}
 	else if {_Type} is "1" or "5":
 		{_Type} is "1":
-			set {_CreditsPL} to degerOku({_Player}, "%{minigamesapi::shortnamegame}%", "Credits", "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%", true, "0") parsed as number
-			set {_KitsPL} to degerOku({_Player}, "%{minigamesapi::shortnamegame}%", "Kits", "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%", true, "*")
+			set {_KitsPL} to JSONdegerOku({_Player}, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Kits")
 		set {_Variables::*} to configuration section "Kits" get of "plugins/%{minigamesapi::game}%/kits.yml"
 	else if {_Type} is "2":
 		loop 15 times:
@@ -830,7 +842,6 @@ function PageAPIGame(Player: player, Type: text, page: number):
 						#
 						replace all " and " with "||&7" in {_V::Lore}
 						replace all ", " with "||&7" in {_V::Lore}
-					set {_Kit.Permission} to checkFileSKY("Kits.%{_Kit}%.Permission-Needed", "kits")
 					set {_Kit.Cost} to checkFileSKY("Kits.%{_Kit}%.Cost", "kits") parsed as number
 					{_Kit.Cost} is not set:
 						set {_Kit.Cost} to 0
@@ -839,23 +850,8 @@ function PageAPIGame(Player: player, Type: text, page: number):
 					else if "%{_KitsPL}%" contains "%{_Kit}%":
 						set {_Lore.Alt} to "%{SW::Messages::%{_lang}%::Kit_1}%"
 					else:
-						set {_permcont} to true
-						{_Kit.Permission} is "true":
-							{_Player} doesn't have permission "minigamesapi.kits.%{_Kit}%"
-							set {_permcont} to false
-						if {_permcont} is true:
-							if {_CreditsPL} is greater or equal to {_Kit.Cost}:
-								set {_Lore.Alt} to "||%{SW::Messages::%{_lang}%::Kit_Price}% %{_Kit.Cost}% ⛃||%{SW::Messages::%{_lang}%::Kit_Buy_Lore}%"
-							else:
-								set {_Lore.Alt} to "||%{SW::Messages::%{_lang}%::Kit_Price}% %{_Kit.Cost}% ⛃||%{SW::Messages::%{_lang}%::No_Kit_Credits}%"
-								set {_V::Item} to "166" parsed as material	
-						else:
-							set {_Lore.Alt} to "||%{SW::Messages::%{_lang}%::Kit_Price}% %{_Kit.Cost}% ⛃||%{SW::Messages::%{_lang}%::No_Kit_Buy_Permission}%"
-							set {_V::Item} to "166" parsed as material	
-					checkFileSKY("Kits.%{_Kit}%.Permission-Needed", "kits") is "true":
-						{_Player} doesn't have permission "minigamesapi.kits.%{_Kit}%"
-						set {_Lore.Alt} to "%{SW::Messages::%{_lang}%::No_Kit_Use}%"
-						set {_V::Item} to "166" parsed as material
+						set {_Lore.Alt} to "%{SW::Messages::%{_lang}%::Kit_2}%"
+						set {_V::Item} to "101" parsed as material
 					set {_V::Lore} to "&7%coloured {_V::Lore}%||||%{_Lore.Alt}%"
 				else if {_Type} is "2":
 					set {_Glass} to "%loop-value%"
@@ -897,61 +893,19 @@ function PageAPIGame(Player: player, Type: text, page: number):
 				make gui {_start} with {_V::Item} named "%{_V::Name}%" with lore "%{_V::Lore}%":
 					if {_Type} is "1":
 						set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_uuid}%")		
-						if {_Arena} is not "*":	
-							set {_Kit} to checkFileSKY("Datas.Players-List.%{_uuid}%.Kit", "arenas/%{_Arena}%") 
-							if "%{_Kit}%" is not "%{_target}%":	
-								set {_CreditsPL} to degerOku({_Player}, "%{minigamesapi::shortnamegame}%", "Credits", "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%", true, "0") parsed as number
-								{_CreditsPL} is not set:
-									set {_CreditsPL} to 0
-								set {_KitsPL} to degerOku({_Player}, "%{minigamesapi::shortnamegame}%", "Kits", "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%", true, "*")
-								if {_KitsPL} doesn't contain "%{_target}%":
-									set {_Kit.Cost} to checkFileSKY("Kits.%{_target}%.Cost", "kits") parsed as number
-									{_Kit.Cost} is not set:
-										set {_Kit.Cost} to 0
-									set {_permcont} to true
-									{_Kit.Permission} is "true":
-										{_Player} doesn't have permission "minigamesapi.kits.%{_target}%"
-										set {_permcont} to false
-									if {_permcont} is true:
-										if {_Kit.Cost} is greater than 0:
-											if {_CreditsPL} is greater or equal to {_Kit.Cost}:
-												{_KitsPL} is "*":
-													set {_KitsPL} to ""
-												set {_KitsPL} to "%{_target}%,%{_KitsPL}%"
-												degerAyarla({_Player}, "%{minigamesapi::shortnamegame}%", "Kits", "%{_KitsPL}%", "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
-												writeFileSKY("Datas.Players-List.%{_uuid}%.Kit", "%{_target}%", "arenas/%{_Arena}%")	
-												set {_Name} to checkFileSKY("Kits.%{_target}%.Name", "kits")
-												set {_msg} to {SW::Messages::%{_lang}%::Kit_Bought}
-												replace all "{KIT}" with "%{_Name}%" in {_msg}
-												replace all "{COST}" with "%{_Kit.Cost}%" in {_msg}
-												send "%{SW::Prefix}% %{_msg}%" to {_Player}
-												degerCikar({_Player}, "%{minigamesapi::shortnamegame}%", "Credits", {_Kit.Cost}, "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
-												stop
-											else:
-												send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Not_Enough_Credits}%" to {_Player}
-												stop
-										else:	
-											writeFileSKY("Datas.Players-List.%{_uuid}%.Kit", "%{_target}%", "arenas/%{_Arena}%")	
-											set {_Name} to checkFileSKY("Kits.%{_target}%.Name", "kits")
-											set {_msg} to {SW::Messages::%{_lang}%::Kit_Selected}
-											replace all "{KIT}" with "%{_Name}%" in {_msg}
-											send "%{SW::Prefix}% %{_msg}%" to {_Player}	
-											stop
-									else:
-										send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::No_Perm_Buy_Kit}%" to {_Player}
-										stop
-								else:
-									writeFileSKY("Datas.Players-List.%{_uuid}%.Kit", "%{_target}%", "arenas/%{_Arena}%")	
-									set {_Name} to checkFileSKY("Kits.%{_target}%.Name", "kits")
-									set {_msg} to {SW::Messages::%{_lang}%::Kit_Selected}
-									replace all "{KIT}" with "%{_Name}%" in {_msg}
-									send "%{SW::Prefix}% %{_msg}%" to {_Player}	
-									stop
-							else:
-								send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Already_Have_Kit}%" to {_Player}
-								stop
+						{_Arena} is not "*"
+						set {_Kit} to checkFileSKY("Datas.Players-List.%{_uuid}%.Kit", "arenas/%{_Arena}%") 
+						"%{_Kit}%" is not "%{_target}%"
+						set {_KitsPL} to JSONdegerOku({_Player}, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Kits")
+						if {_KitsPL} doesn't contain "%{_target}%":
+							send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Kit_DontHave}%" to {_Player}
+							stop
 						else:
-							send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Arent_Ingame}%" to {_Player}
+							writeFileSKY("Datas.Players-List.%{_uuid}%.Kit", "%{_target}%", "arenas/%{_Arena}%")	
+							set {_Name} to checkFileSKY("Kits.%{_target}%.Name", "kits")
+							set {_msg} to {SW::Messages::%{_lang}%::Kit_Selected}
+							replace all "{KIT}" with "%{_Name}%" in {_msg}
+							send "%{SW::Prefix}% %{_msg}%" to {_Player}	
 							stop
 					else if {_Type} is "2":
 						set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_uuid}%")
@@ -1868,7 +1822,7 @@ function winMatch(Arena: text):
 			replace all "{KILLS}" with "%{_Kills::%loop-value%}%" in {_msg}
 			set {_UUID} to "%uuid of {_Player}%"
 			
-			degerEkle({_Player}, "%{minigamesapi::shortnamegame}%", "Wins", 1, "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+			JSONdegerEkle({_Player}, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Wins", 1)
 			
 			#Recent Players
 			set {_rcp} to ""
@@ -1891,7 +1845,7 @@ function winMatch(Arena: text):
 	loop {_RecentPlayers::*}:
 		delete {_Player}
 		set {_Player} to "%loop-value%" parsed as offline player
-		degerEkle({_Player}, "%{minigamesapi::shortnamegame}%", "Played", 1, "%replaceMessage({_Player}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+		JSONdegerEkle({_Player}, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Played", 1)
 	writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")	
 function leaveGame(PlayerName: player, boolean: boolean):
 	set {_UUID} to "%uuid of {_PlayerName}%"
@@ -2076,6 +2030,7 @@ on join:
 	{SW::Bungee_Mode} is "true"	 
 	set join message to ""
 	refreshsqldata "%player%" with id "leveling"
+	refreshsqldata "%player%" with id "minigamesapi"
 	set {_BungeeArena} to {SW::Bungee_Arena}
 	file "plugins/%{minigamesapi::game}%/arenas/%{_BungeeArena}%.yml" exists
 	{_BungeeArena} is not "*"

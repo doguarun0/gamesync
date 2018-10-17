@@ -1,7 +1,7 @@
 on load:
 	# captureleri kaydet
 	set {minigamesapi::game} to "KINGDOMS"
-	set {minigamesapi::game_version} to "6ekim"
+	set {minigamesapi::game_version} to "a1710"
 	set {minigamesapi::shortnamegame} to "kingdoms"
 
 	#
@@ -692,10 +692,10 @@ on death of player:
 		set attacker's hunger to 20
 		broadcastServerKingdoms("Player_Killed", "{VICTIM}^%victim%~{ATTACKER}^%attacker%", true, "*", {_Arena})	
 		
-		degerEkle(attacker, "%{minigamesapi::shortnamegame}%", "Kills", 1, "%replaceMessage(attacker, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+		JSONdegerEkle(attacker, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Kills", 1)
 		
 		degerEkleSKY("Datas.Players-List.%uuid of attacker%.Kills", 1, "arenas/%{_Arena}%")
-	degerEkle(victim, "%{minigamesapi::shortnamegame}%", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+	JSONdegerEkle(victim, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Deaths", 1)
 	set {_hp} to checkFileSKY("Datas.Players-List.%uuid of victim%.HP", "arenas/%{_Arena}%") parsed as number		
 	if {_hp} is greater than 0:
 		degerCikarSKY("Datas.Players-List.%uuid of victim%.HP", 1, "arenas/%{_Arena}%")
@@ -773,7 +773,7 @@ on break:
 				writeFileSKY("Datas.Kingdoms.%{_k}%.Status", "0", "arenas/%{_Arena}%")
 				set {_Towns::*} to configuration section "Datas.Towns" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 				set {_Time} to setTimeKG("%month%", "%day%", "%hour%", "%minute%", "%second+3%")
-				degerEkle(player, "%{minigamesapi::shortnamegame}%", "CapturedNexus", 1, "%replaceMessage(player, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+				JSONdegerEkle(player, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "CapturedNexus", 1)
 				degerEkleSKY("Datas.Players-List.%uuid of player%.CapturedNexus", 1, "arenas/%{_Arena}%")
 				size of {_Towns::*} is greater than 0:
 					loop {_Towns::*}:
@@ -800,8 +800,8 @@ on break:
 						set {_Location} to location ({_x}, {_y}, {_z}) in world {_w}  
 						set block at block under {_Location} to "%{SW::Messages::Kingdom_Icon::%{_kingdom}%}%" parsed as material
 						broadcastServerKingdoms("ANVIL_BREAK", "*", true, "%{_k}%", {_Arena})
-						strike lightning effect at {_Location
-						degerEkle(player, "%{minigamesapi::shortnamegame}%", "CapturedTown", 1, "%replaceMessage(player, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+						strike lightning effect at {_Location}
+						JSONdegerEkle(player, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "CapturedTown", 1)
 						degerEkleSKY("Datas.Players-List.%uuid of player%.CapturedTown", 1, "arenas/%{_Arena}%")
 				set {_x} to checkFileSKY("Datas.Lobby.x", "maps/%{_CurrentMap}%") parsed as number
 				set {_y} to checkFileSKY("Datas.Lobby.y", "maps/%{_CurrentMap}%") parsed as number
@@ -877,7 +877,7 @@ on break:
 					set block at block under location of event-block to "%{SW::Messages::Kingdom_Icon::%{_kingdom}%}%" parsed as material
 					play sound "AMBIENCE_THUNDER" to player and volume 1 with pitch 1
 					strike lightning effect at event-block's location		
-					degerEkle(player, "%{minigamesapi::shortnamegame}%", "CapturedTown", 1, "%replaceMessage(player, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+					JSONdegerEkle(player, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "CapturedTown", 1)
 					degerEkleSKY("Datas.Players-List.%uuid of player%.CapturedTown", 1, "arenas/%{_Arena}%")
 			else:
 				set {_msg} to {SW::Messages::%{_lang}%::Capture_Wait_Timer}

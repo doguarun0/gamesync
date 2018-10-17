@@ -1,6 +1,6 @@
 ﻿on load:
 	set {minigamesapi::game} to "SKYWARS"
-	set {minigamesapi::game_version} to "a1110"
+	set {minigamesapi::game_version} to "a1710"
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"
@@ -18,7 +18,7 @@
 	set {SW::Tier_3_Chance} to 20
 	set {SW::Tier_4_Chance} to 10
 	set {SW::Empty_Slot_Chance} to 30
-	set {SW::Event-Timer} to 220
+	set {SW::Event-Timer} to 25 #220
 	#
 function eventAPI(Arena: text):
 	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
@@ -74,11 +74,7 @@ function eventAPI(Arena: text):
 					execute console command "/time set night %{_w}%"
 					loop blocks within {_N1} to {_N2}:
 						type of loop-block is not air or chest or trapped chest
-						if "%type of loop-block%" is "water":
-							set block at loop-block to air
-							wait 1 tick
-							set block at loop-block to lava
-						else if "%type of loop-block%" contains "leave":
+						if "%type of loop-block%" contains "leave":
 							set block at loop-block to glowstone
 						else:
 							set block at loop-block to {_block.%random integer from 1 to 4%}
@@ -97,9 +93,9 @@ function eventAPI(Arena: text):
 						spawn 1 ghast at {_Location}
 						set maximum health of last spawned ghast to 15
 						set health of last spawned ghast to 15
-				writeFileSKY("Datas.Event-Tier", "%{_Tier}%", "arenas/%{_Arena}%")	
 				{_Tier} is greater or equal to 2: 
 					stop
+				writeFileSKY("Datas.Event-Tier", "%{_Tier}%", "arenas/%{_Arena}%")		
 				writeFileSKY("Datas.Event-Timer", "%{SW::Event-Timer}%", "arenas/%{_Arena}%")
 				set {_UpgradeSeconds} to {SW::Event-Timer}
 			wait 1 second
@@ -347,6 +343,7 @@ function debugArena(Arena: text, Type: text):
 			delete {_BungeeP}
 			set {_BungeeP} to "%loop-value%" parsed as player
 			{_BungeeP} is online
+			undisguise {_BungeeP}
 			teleport {_BungeeP} to {_Lobby}
 			joinGame({_BungeeP}, "%{_Arena}%")
 			wait 1 ticks
@@ -625,7 +622,8 @@ function startGame(Arena: text, Type: text):
 			writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")
 			sendMessageArena("%{_Arena}%", "Player_Left_Starting", "*", true)	
 			stop
-	{_Cooldown} is less than 1
+	{_Cooldown} is less than 2
+	wait 20 ticks
 	writeFileSKY("Datas.Status", "2", "arenas/%{_Arena}%")
 	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
 	set level of {_Player::*} to 0
@@ -725,19 +723,19 @@ on death of player:
 	veriCikarSKY("Datas.Players-List", "%uuid of victim%", "arenas/%{_Arena}%")
 	clear victim's inventory
 	set level of victim to 0
-	set {_a} to attacker
-	degerEkle(victim, "%{minigamesapi::shortnamegame}%", "Deaths", 1, "%replaceMessage(victim, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
+	JSONdegerEkle(victim, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Deaths", 1)
 	send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Died}%" to victim		
 	set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 	set {_KillsV} to a value "Datas.Players-List.%uuid of victim%.Kills" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
 	set {_ChestsV} to a value "Datas.Players-List.%uuid of victim%.Chests" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml" parsed as number
-	set {_attackerr} to checkFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "arenas/%{_Arena}%")
-	if {_attackerr} is not "*" or "%victim%":
-		set {_a} to {_attackerr} parsed as player
-		set {_auuid} to "%uuid of {_a}%"
-		degerEkle({_a}, "%{minigamesapi::shortnamegame}%", "Kills", 1, "%replaceMessage({_a}, {MySQLAPI::%{minigamesapi::shortnamegame}%::default})%")
-		degerEkleSKY("Datas.Players-List.%{_auuid}%.Kills", 1, "arenas/%{_Arena}%")
-		sendMessageArena("%{_Arena}%", "Death_Type_Killed", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+	if attacker is not victim:
+		set {_attackerArena} to checkFileSKY("Players.Arena-Name", "playerdata/%uuid of attacker%")
+		if {_attackerArena} is not "*":
+			JSONdegerEkle(attacker, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Kills", 1)
+			degerEkleSKY("Datas.Players-List.%uuid of attacker%.Kills", 1, "arenas/%{_Arena}%")
+			sendMessageArena("%{_Arena}%", "Death_Type_Killed", "{ATTACKER}^%attacker%~{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
+		else:
+			sendMessageArena("%{_Arena}%", "Death_Type_Died", "{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
 	else:
 		sendMessageArena("%{_Arena}%", "Death_Type_Died", "{VICTIM}^%victim%~{PLAYERS}^%size of {_PlayerList::*}%~{MAX}^%{_Maximum}%", true)	
 	writeFileSKY("Players.Arena-Name", "*", "playerdata/%uuid of victim%")
@@ -817,7 +815,6 @@ on damage:
 		damage cause is void:
 			writeFileSKY("Datas.Players-List.%uuid of victim%.Revive", "true", "arenas/%{_Arena}%")
 			writeFileSKY("Datas.Players-List.%uuid of victim%.Reviving", "*", "arenas/%{_Arena}%")
-			writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "*", "arenas/%{_Arena}%")	
 			cancel event
 			wait 3 ticks
 			kill the victim
@@ -870,10 +867,13 @@ on damage:
 								remove 1 from {_time}
 								wait 21 ticks
 							else:
+								undisguise victim
 								stop
 						else:
+							undisguise victim
 							stop
 					else:
+						undisguise victim
 						stop
 				writeFileSKY("Datas.Players-List.%uuid of victim%.Revive", "true", "arenas/%{_Arena}%")
 				writeFileSKY("Datas.Players-List.%uuid of victim%.Reviving", "*", "arenas/%{_Arena}%")
@@ -882,10 +882,6 @@ on damage:
 				play sound "EXPLODE" to victim with volume 1 and pitch 1 
 				remove slowness from the victim
 				stop
-			if attacker is a player:
-				writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "%attacker%", "arenas/%{_Arena}%")	
-			else:
-				writeFileSKY("Datas.Players-List.%uuid of victim%.Last-Attacker", "*", "arenas/%{_Arena}%")	
 	checkFileSKY("Players.Spectator", "playerdata/%uuid of attacker%") is not "*":
 		cancel event
 	checkFileSKY("Players.Spectator", "playerdata/%uuid of victim%") is not "*":
