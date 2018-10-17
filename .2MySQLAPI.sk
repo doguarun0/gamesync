@@ -4,8 +4,7 @@ on load:
 	set {MySQLAPI::default::user} to "user_uuid"
 	set {MySQLAPI::default::default} to "(`user_uuid`, `user_name`, `rank`) VALUES ('{UUID}', '{PLAYER}', 'Default');"
 	set {sql1} to the database "mysql://54.39.22.194:3306/DB_Global?user=minecrowddb&password=K2v9pgFB&useSSL=false"
-	set {_read} to "CREATE TABLE IF NOT EXISTS `UsersREPU` (`user_uuid` varchar(255),`user_name` varchar(255),`rank` varchar(20) NOT NULL DEFAULT 'Default',`credit` int(40) NOT NULL DEFAULT '0',`lang` varchar(10) NOT NULL DEFAULT 'EN',`lastlogin` varchar(25) NOT NULL DEFAULT '*',`totalcredit` int(40) NOT NULL DEFAULT '0',`lastdepositedcredit` int(40) NOT NULL DEFAULT '0',`lastdepositeddate` varchar(1024) NOT NULL DEFAULT '0',`bookdisable` varchar(10) NOT NULL DEFAULT 'false',`bookdisabletime` varchar(25) NOT NULL DEFAULT '*',UNIQUE KEY `user_uuid` (user_uuid),UNIQUE KEY `user_name` (`user_name`))"
-	
+	set {_read} to "CREATE TABLE IF NOT EXISTS `UsersREPU` (`user_uuid` varchar(255),`user_name` varchar(255),`rank` varchar(20) NOT NULL DEFAULT 'Default',`credit` int(40) NOT NULL DEFAULT '0',`keys` TEXT,`lang` varchar(10) NOT NULL DEFAULT 'EN',`other_info` TEXT,`totalcredit` int(40) NOT NULL DEFAULT '0',`lastdepositedcredit` int(40) NOT NULL DEFAULT '0',`lastdepositeddate` varchar(1024) NOT NULL DEFAULT '0',UNIQUE KEY `user_uuid` (user_uuid),UNIQUE KEY `user_name` (`user_name`))"
 	execute unsafe {_read} in {sql1} 
 	the last error is set
 	send "%the last error%" to console
