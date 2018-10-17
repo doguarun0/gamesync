@@ -87,23 +87,6 @@ function degerEkleSKY(variableName: text, value: number, fileDir: text):
 	writeFileSKY("%{_variableName}%", "%{_v}%", "%{_fileDir}%")       
 function veriCikarSKY(variableName: text, value: text, fileDir: text): 
 	delete yaml value "%{_variableName}%.%{_value}%" from file "plugins/%{minigamesapi::game}%/%{_fileDir}%.yml"
-function JSONdegerOku(Player: player, Engine: text, Column: text, Variable: text) :: text:
-	set {_var} to degerOku({_Player}, "%{_Engine}%", "%{_Column}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%", true, "")
-	copy json "%{_var}%" to {_values::*}
-	if {_values::%{_Variable}%} is set:
-		return "%{_values::%{_Variable}%}%"
-	else:
-		return "*"
-function JSONdegerEkle(Player: player, Engine: text, Column: text, Variable: text, Number: number):
-	set {_var} to degerOku({_Player}, "%{_Engine}%", "%{_Column}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%", true, "")
-	copy json "%{_var}%" to {_values::*}
-	set {_oNum} to "%{_values::%{_Variable}%}%" parsed as number
-	{_oNum} is not set:
-		set {_oNum} to 0
-	add {_Number} to {_oNum}
-	set {_values::%{_Variable}%} to {_oNum}
-	set {_text} to {_values::*}'s serialized json form
-	degerAyarla({_Player}, "%{_Engine}%", "%{_Column}%", "%{_text}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%")
 function getPlayersListPartiesSKY(player: offline player, arena: text) :: text:
 	set {_UUID} to "%uuid of {_player}%"
 	set {_string} to a value "Datas.Players-List.%{_UUID}%.Players" get of "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml"
