@@ -18,7 +18,7 @@
 	set {SW::Tier_3_Chance} to 20
 	set {SW::Tier_4_Chance} to 10
 	set {SW::Empty_Slot_Chance} to 30
-	set {SW::Event-Timer} to 25 #220
+	set {SW::Event-Timer} to 220
 	#
 function eventAPI(Arena: text):
 	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
@@ -261,7 +261,8 @@ function debugArena(Arena: text, Type: text):
 	writeFileSKY("Datas.Status", "3", "arenas/%{_Arena}%")	
 	writeFileSKY("Datas.Current-Time", "*", "arenas/%{_Arena}%")
 	writeFileSKY("Datas.Event-Timer", "*", "arenas/%{_Arena}%")
-	loop all ghasts:
+	loop all entities:
+		loop-entity is zombie or ghast or skeleton
 		kill loop-entity
 	set {_Mode} to checkFileSKY("Datas.Type", "arenas/%{_Arena}%")
 	set {_Bungee} to {SW::Bungee_Mode}
@@ -323,6 +324,7 @@ function debugArena(Arena: text, Type: text):
 			saveRecentPlayers({_Player}, {_rcp.%{_Player}%})
 			{_Mode} is not "Solo":
 				removePartySKY({_Player}, {_Arena})
+	execute console command "/time set day %{_w}%"
 	{_Type} is not "win":
 		sendTitleArena("%{_Arena}%", "Title_GameFinished", "*", "Restart_Kick", "*")
 		broadcastServer("Game_Debug_Broadcast", "{ARENA}^%{_Arena}%", true)		
@@ -800,13 +802,17 @@ on place:
 		else:
 			checkFileSKY("Datas.Players-List.%uuid of player%.Reviving", "arenas/%{_Arena}%") is "true":
 				cancel event
-			event-block is chest or trapped chest:
+			if event-block is chest or trapped chest:
 				set {_Loc} to "%location of event-block%"
 				replace all ", y: " and ", z: " with "|" in {_Loc}
 				replace all "." with "," in {_Loc}
 				replace all "x: " with "" in {_Loc}
 				set {_Loc} to "%{_Loc}%|%world of event-block%"
 				writeFileSKY("Datas.Chests-Location.%{_Loc}%", "%player%", "arenas/%{_Arena}%")
+			else:
+				Set {_Tier} to checkFileSKY("Datas.Event-Tier", "arenas/%{_Arena}%") parsed as number		
+				{_Tier} is 2
+				ignite the player for 5 seconds
 	else if checkFileSKY("Players.Spectator", "playerdata/%uuid of player%") is not "*":
 		cancel event
 on damage:

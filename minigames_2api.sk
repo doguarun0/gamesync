@@ -221,12 +221,16 @@ function LobbyScoreboardAPI(Player: player):
 	wait 1 ticks
 	reset slots numbers between 1 and 9 of skoreboard {_Player}
 	
+	set {_ver} to {minigamesapi::game_version}
+	{minigamesapi::game_version} is not set:
+		set {_ver} to "?"
+	
 	while {_Player} is online:
 		set {_s} to checkFileSKY("Datas.Status", "arenas/%{_Arena}%")
 		if {_s} is "0" or "1":	
 			set {_x} to checkFileSKY("Datas.Current-Time", "arenas/%{_Arena}%") parsed as integer
 			set {_text.1} to "&7%{_Mode}% &8%{_Day}%"
-			set {_text.3} to "%{SW::Messages::%{_lang}%::Lobby_SC_Version}%&e%{minigamesapi::game_version}%"
+			set {_text.3} to "%{SW::Messages::%{_lang}%::Lobby_SC_Version}%&e%{_ver}%"
 			set {_text.5} to "%{SW::Messages::%{_lang}%::SC_InGame_Map}%&e%{_CurrentMap}%"
 			set {_text.6} to "%{SW::Messages::%{_lang}%::SC_InGame_Players}%&e%size of players%/%{_Maximum}%"
 			set {_text.8} to "%{SW::Messages::%{_lang}%::Lobby_SC_StatusText_%{_s}%}%"
