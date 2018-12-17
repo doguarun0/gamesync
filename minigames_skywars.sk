@@ -132,7 +132,7 @@ function glassAPI(Arena: text, Type: text):
 		set block at block 2 above {_Location::%loop-number%} to {_DefaultBlock}
 		wait 2 ticks
 function inventoryAPI(Player: player, Type: text): 
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	if {_Type} is "0":
 		set {_Count} to 0
 		set {minigamesapi::inventories::%{_Player}%::helmet} to {_Player}'s helmet
@@ -163,7 +163,7 @@ function inventoryAPI(Player: player, Type: text):
 		delete {minigamesapi::inventories::%{_Player}%::offhand}
 		delete {minigamesapi::inventories::%{_Player}%::level}
 function kitAPI(Player: player): 
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	set {_Kits::*} to configuration section "Kits" get of "plugins/%{minigamesapi::game}%/kits.yml" 
 	set {_Kit} to checkFileSKY("Datas.Players-List.%{_UUID}%.Kit", "arenas/%{_Arena}%")	
@@ -184,7 +184,7 @@ function kitAPI(Player: player):
 		give {_Item} to {_Player}
 function scoreboardAPI(Player: player):
 	set {_lang} to language of {_Player}
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
 	set {_Mode} to checkFileSKY("Datas.Type", "arenas/%{_Arena}%")
@@ -466,7 +466,7 @@ function chestEditGUI(player: player, chest: text, tier: text):
 	open last gui to {_player}
 	stop	
 function voteChests(player: player, type: text):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_lang} to language of {_player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	if {_Arena} is not "*":	
@@ -496,7 +496,7 @@ function voteChests(player: player, type: text):
 	else:
 		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Arent_Ingame}%" to {_Player}
 function chestVoteGUI(player: player):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_lang} to language of {_player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	if {_Arena} is not "*":	
@@ -647,7 +647,7 @@ function startGame(Arena: text, Type: text):
 		set {_TeleportList::*} to {_Player::*}
 		loop size of {_TeleportList::*} times:
 			set {_RandomPlayer::%loop-number%} to "%random element out of {_TeleportList::*}%" parsed as player
-			set {_RandomUUID::%loop-number%} to "%uuid of {_RandomPlayer::%loop-number%}%"
+			set {_RandomUUID::%loop-number%} to uuid of {_RandomPlayer::%loop-number%}
 			set {_x} to checkFileSKY("Datas.Spawns.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
 			set {_y} to checkFileSKY("Datas.Spawns.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
 			set {_z} to checkFileSKY("Datas.Spawns.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
@@ -727,7 +727,7 @@ on death of player:
 	writeFileSKY("Datas.Players-List.%uuid of victim%.Revive", "true", "arenas/%{_Arena}%")
 	writeFileSKY("Datas.Players-List.%uuid of victim%.Reviving", "*", "arenas/%{_Arena}%")
 	remove slowness from the victim
-	veriCikarSKY("Datas.Players-List", "%uuid of victim%", "arenas/%{_Arena}%")
+	veriCikarSKY("Datas.Players-List", uuid of victim, "arenas/%{_Arena}%")
 	clear victim's inventory
 	set level of victim to 0
 	JSONdegerEkle(victim, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Deaths", 1)
@@ -761,7 +761,7 @@ on death of player:
 	#Recent Players
 	set {_RecentPlayers::*} to  configuration section "Datas.All-Joined" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 	set {_rcp} to ""
-	remove "%uuid of victim%" from {_RecentPlayers::*}
+	remove uuid of victim from {_RecentPlayers::*}
 	loop {_RecentPlayers::*}:
 		clear {_plr}
 		set {_plr} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
@@ -921,7 +921,7 @@ on rightclick with emerald:
 	arenaGUI(player, "%{_Arena}%")
 function chestAPI(player: player, id: text, Arena: text):
 	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
-	set {_uuid} to "%uuid of {_player}%"
+	set {_uuid} to uuid of {_player}
 	set {_color.1} to "&f"
 	set {_color.2} to "&a"
 	set {_color.3} to "&d"

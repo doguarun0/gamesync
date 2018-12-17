@@ -88,7 +88,7 @@ function degerEkleSKY(variableName: text, value: number, fileDir: text):
 function veriCikarSKY(variableName: text, value: text, fileDir: text): 
 	delete yaml value "%{_variableName}%.%{_value}%" from file "plugins/%{minigamesapi::game}%/%{_fileDir}%.yml"
 function getPlayersListPartiesSKY(player: offline player, arena: text) :: text:
-	set {_UUID} to "%uuid of {_player}%"
+	set {_UUID} to uuid of {_player}
 	set {_string} to a value "Datas.Players-List.%{_UUID}%.Players" get of "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml"
 	set {_res} to "*;"
 	{_string} is set:
@@ -119,7 +119,7 @@ function remPlayersListPartiesSKY(party: offline player, player: offline player,
 	set yaml value "Datas.Players-List.%{_UUID}%.Players" from file "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml" to "%{_res}%"
 function removePartySKY(p: offline player, arena: text):
 	#
-	set {_uuid} to "%uuid of {_p}%"
+	set {_uuid} to uuid of {_p}
 	set {_party} to a value "Datas.Players-List.%{_uuid}%.HasParty" get of "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml" parsed as offline player
 	wait 1 ticks
 	{_party} is not set:
@@ -205,7 +205,7 @@ function checkArena(arena: text) :: text:
 	return "%{_r}%"
 function LobbyScoreboardAPI(Player: player):
 	set {_lang} to language of {_Player}
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
 	set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
@@ -394,7 +394,7 @@ function playSoundSKY(Player: player, SoundNew: text, SoundOld: text, Pitch: int
 	else:
 		play sound "%{_SoundNew}%" to {_Player} with volume 1 and pitch {_Pitch}
 function actionBarSpecAPI(Player: player):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_lang} to language of {_Player}
 	while {_Player} is online:
 		set {_Spec} to checkFileSKY("Players.Spectator", "playerdata/%{_UUID}%")
@@ -404,7 +404,7 @@ function actionBarSpecAPI(Player: player):
 		else:
 			stop		
 function specAPI(Player: player, Arena: text, Type: boolean):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
 	set {_lang} to language of {_Player}	
 	if {_Type} is true:
@@ -447,7 +447,7 @@ function specAPI(Player: player, Arena: text, Type: boolean):
 		wait 3 ticks
 		set {_Player}'s gamemode to survival
 function bungeeConnector(Player: player, Message: text, Type: text): 
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_lang} to language of {_Player}
 	set {_Bungee} to "true"	
 	{_Bungee} is "true"
@@ -653,7 +653,7 @@ function arenaGUI(Player: player, Arena: text):
 		format gui slot 21 of {_Player} with grass named "%{SW::Messages::%{_lang}%::Arena_GUI_8}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_8_Lore}%" to close then run function sendMessagePlayer({_Player}, "Causes::0")
 		format gui slot 25 of {_Player} with compass named "%{SW::Messages::%{_lang}%::Arena_GUI_7}%" with lore "%{SW::Messages::%{_lang}%::Arena_GUI_7_Lore}%" to close then run function sendMessagePlayer({_Player}, "Causes::0")
 function bungeeGUI(Player: player, Type: text):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_lang} to language of {_Player}
 	set {_Bungee} to {SW::Bungee_Mode}
 	if {_Type} is "0":
@@ -756,7 +756,7 @@ function setSpawnArena(Player: player, Arena: text):
 		format gui slot {_Count} of {_Player} with loop-number of player head named "&a%{_msg1}%" with lore "%{_msg}%" to close then run console command "swconsole 0 %{_Player}% %{_CurrentMap}% %loop-number%"
 		add 1 to {_Count}
 function PageAPIGame(Player: player, Type: text, page: number):
-	set {_uuid} to "%uuid of {_Player}%"
+	set {_uuid} to uuid of {_Player}
 	set {_lang} to language of {_Player}
 	wait 3 ticks
 	set {_start} to 10
@@ -1032,7 +1032,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 									writeFileSKY("Datas.King-Time", "-1", "arenas/%arg 3%")
 								playSoundSKY(player, "BLOCK_NOTE_PLING", "NOTE_PLING", 1)							
 								set {_msg} to {SW::Messages::%{_lang}%::Arena_Created}
-								replace all "{ARENA}" with "%arg 3%" in {_msg}
+								replace all "{ARENA}" with arg 3 in {_msg}
 								send "%{_prefixO}% %{_msg}%" to player				
 							else:
 								send "%{_prefixO}% %{SW::Messages::%{_lang}%::Arena_Exists}%" to player
@@ -1070,11 +1070,11 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 								writeFileSKY("Datas.Pos-2.z", "%{_pos2.z}%", "maps/%arg 3%")	
 								writeFileSKY("Datas.Pos-2.world", "%{_pos2.w}%", "maps/%arg 3%")	
 								wait 1 ticks
-								schematicAPISKY("%arg 3%", "0")
+								schematicAPISKY(arg 3, "0")
 								wait 10 ticks
 								create file "plugins/%{minigamesapi::game}%/maps/%arg 3%.yml"
 								wait 1 tick
-								writeFileSKY("Datas.Name", "%arg 3%", "maps/%arg 3%")	
+								writeFileSKY("Datas.Name", arg 3, "maps/%arg 3%")	
 								writeFileSKY("Datas.World", "%world of player%", "maps/%arg 3%")	
 								writeFileSKY("Datas.Votes", "0", "maps/%arg 3%")	
 								writeFileSKY("Datas.Spawns.1.x", "*", "maps/%arg 3%")	
@@ -1086,7 +1086,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 									writeFileSKY("Datas.Emerald.1.x", "*", "maps/%arg 3%")	
 									writeFileSKY("Datas.Diamond.1.x", "*", "maps/%arg 3%")	
 								set {_msg} to {SW::Messages::%{_lang}%::Map_Created}
-								replace all "{MAP}" with "%arg 3%" in {_msg}
+								replace all "{MAP}" with arg 3 in {_msg}
 								send "%{_prefixO}% %{_msg}%" to player						
 							else:
 								send "%{_prefixO}% %{SW::Messages::%{_lang}%::Map_Exists}%" to player
@@ -1102,12 +1102,12 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 					if arg 2 is "arena":
 						if arg 3 is set:
 							if file "plugins/%{minigamesapi::game}%/arenas/%arg 3%.yml" exists:
-								debugArena("%arg 3%", "remove")
+								debugArena(arg 3, "remove")
 								set {_msg} to {SW::Messages::%{_lang}%::Arena_Removed}
-								replace all "{ARENA}" with "%arg 3%" in {_msg}
+								replace all "{ARENA}" with arg 3 in {_msg}
 								send "%{_prefixO}% %{_msg}%" to player						
 								delete file "plugins/%{minigamesapi::game}%/arenas/%arg 3%.yml"
-								{SW::Bungee_Arena} is "%arg 3%":
+								{SW::Bungee_Arena} is arg 3:
 									set {SW::Bungee_Arena} to "*"
 							else:
 								send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Arena}%" to player
@@ -1122,12 +1122,12 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 										set {_file} to "%loop-value%"
 										replace all ".yml" with "" in {_file}
 										set {_map} to checkFileSKY("Datas.Current-Map", "arenas/%{_file}%")
-										{_map} is "%arg 3%"
+										{_map} is arg 3
 										writeFileSKY("Datas.Current-Map", "*", "arenas/%{_file}%")
 										debugArena("%{_file}%", "remove")
 										writeFileSKY("Datas.Status", "4", "arenas/%{_file}%")
 								set {_msg} to {SW::Messages::%{_lang}%::Map_Removed}
-								replace all "{MAP}" with "%arg 3%" in {_msg}
+								replace all "{MAP}" with arg 3 in {_msg}
 								send "%{_prefixO}% %{_msg}%" to player						
 								delete file "plugins/%{minigamesapi::game}%/maps/%arg 3%.yml"
 							else:
@@ -1147,7 +1147,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 						writeFileSKY("Datas.Center.z", "%z coordinate of player%", "maps/%arg 2%")	
 						writeFileSKY("Datas.Center.world", "%world of player%", "maps/%arg 2%")	
 						set {_msg} to "&7Center has been set for &f{MAP}&7."
-						replace all "{MAP}" with "%arg 2%" in {_msg}
+						replace all "{MAP}" with arg 2 in {_msg}
 						send "%{_prefixO}% %{_msg}%" to player
 					else:
 						send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Map}%" to player
@@ -1169,7 +1169,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 									stop
 								set {_confrim} to false	
 								if arg 3 is not "Town":
-									set {_number} to "%arg 4%" parsed as integer
+									set {_number} to arg 4 parsed as integer
 									{_number} is greater than 0:
 										set {_confrim} to true
 									{_number} is greater than 8:
@@ -1181,8 +1181,8 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 										send "%{_prefixO}% You can't define team higher than 4!"
 										stop	
 								else:
-									set {_number} to "%arg 4%"
-									set {_number2} to "%arg 4%" parsed as integer
+									set {_number} to arg 4
+									set {_number2} to arg 4 parsed as integer
 									{_number2} is set:
 										send "%{_prefixO}% Don't write number as town name. Be creative!" to player	
 										stop
@@ -1200,7 +1200,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 										writeFileSKY("Datas.%arg 3%.%{_number}%.z", "%{_z}%", "maps/%arg 2%")	
 										writeFileSKY("Datas.%arg 3%.%{_number}%.world", "%world of player%", "maps/%arg 2%")	
 										set {_msg} to {SW::Messages::%{_lang}%::SetLocation_%arg 3%}
-										replace all "{MAP}" with "%arg 2%" in {_msg}
+										replace all "{MAP}" with arg 2 in {_msg}
 										replace all "{NUMBER}" with "%{_number}%" in {_msg}
 										send "%{_prefixO}% %{_msg}%" to player
 										send "&f&n(To delete it, use&r &f/mapi setlocation %arg 2% %arg 3% %arg 4%&r &f&nwhile you're holding magma cream.)" to player
@@ -1251,7 +1251,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 						writeFileSKY("Datas.Lobby.z", "%z coordinate of player%", "maps/%arg 2%")	
 						writeFileSKY("Datas.Lobby.world", "%world of player%", "maps/%arg 2%")	
 						set {_msg} to {SW::Messages::%{_lang}%::Set_Lobby}
-						replace all "{MAP}" with "%arg 2%" in {_msg}
+						replace all "{MAP}" with arg 2 in {_msg}
 						send "%{_prefixO}% %{_msg}%" to player
 					else:
 						send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Map}%" to player
@@ -1264,7 +1264,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/arenas/%arg 2%.yml" exists:
 						if checkFileSKY("Datas.Status", "arenas/%arg 2%") is not "0":
-							set {_causes::*} to checkArena("%arg 2%") split at ";"
+							set {_causes::*} to checkArena(arg 2) split at ";"
 							if "%{_causes::*}%" is not "false":
 								send "%{_prefixO}% %{SW::Messages::%{_lang}%::Causes_Header}%" to player
 								loop {_causes::*}:
@@ -1272,9 +1272,9 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 								writeFileSKY("Datas.Status", "4", "arenas/%arg 2%")
 							else:
 								wait 3 ticks
-								debugArena("%arg 2%", "enable")
+								debugArena(arg 2, "enable")
 								set {_msg} to {SW::Messages::%{_lang}%::Arena_Enable}
-								replace all "{ARENA}" with "%arg 2%" in {_msg}
+								replace all "{ARENA}" with arg 2 in {_msg}
 								send "%{_prefixO}% %{_msg}%" to player		
 								writeFileSKY("Datas.Status", "0", "arenas/%arg 2%")
 						else:
@@ -1290,9 +1290,9 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 				if arg 2 is set:
 					if file "plugins/%{minigamesapi::game}%/arenas/%arg 2%.yml" exists:
 						if checkFileSKY("Datas.Status", "arenas/%arg 2%") is not "4":
-							debugArena("%arg 2%", "disable")
+							debugArena(arg 2, "disable")
 							set {_msg} to {SW::Messages::%{_lang}%::Arena_Disable}
-							replace all "{ARENA}" with "%arg 2%" in {_msg}
+							replace all "{ARENA}" with arg 2 in {_msg}
 							send "%{_prefixO}% %{_msg}%" to player		
 							writeFileSKY("Datas.Status", "4", "arenas/%arg 2%")
 						else:
@@ -1309,9 +1309,9 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 					if file "plugins/%{minigamesapi::game}%/arenas/%arg 2%.yml" exists:
 						set {_Status} to checkFileSKY("Datas.Status", "arenas/%arg 2%")
 						if {_Status} is not "3":
-							debugArena("%arg 2%", "debug")
+							debugArena(arg 2, "debug")
 							set {_msg} to {SW::Messages::%{_lang}%::Debug_1}
-							replace all "{ARENA}" with "%arg 2%" in {_msg}
+							replace all "{ARENA}" with arg 2 in {_msg}
 							send "%{_prefixO}% %{_msg}%"
 						else:
 							send "%{_prefixO}% %{SW::Messages::%{_lang}%::Debug_2}%" to player
@@ -1358,9 +1358,9 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 							delete {SW::Map_Blocks::%arg 3%::*}
 							wait 10 ticks
 							writeFileSKY("Datas.World", "%world of player%", "maps/%arg 2%")		
-							schematicAPISKY("%arg 2%", "0")
+							schematicAPISKY(arg 2, "0")
 							set {_msg} to {SW::Messages::%{_lang}%::Map_Redefine}
-							replace all "{MAP}" with "%arg 2%" in {_msg}
+							replace all "{MAP}" with arg 2 in {_msg}
 							send "%{_prefixO}% %{_msg}%" to player		
 						else:
 							send "%{_prefixO}% %{SW::Messages::%{_lang}%::Option_Disabled}%" to player	
@@ -1412,7 +1412,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 							loop blocks within {_N1} to {_N2}:
 								"%type of loop-block%" is "diamond_ore" or "diamond_block":
 									add location of loop-block to {SW::Map::%arg 2%::Town_Mine::%arg 3%::*}
-									set {SW::Map::TownBlock_%location of loop-block%} to "%arg 3%"
+									set {SW::Map::TownBlock_%location of loop-block%} to arg 3
 							send "%{_prefixO}% &7Minefield has added for town &a%arg 3%&7. &8[%size of {SW::Map::%arg 2%::Town_Mine::%arg 3%::*}%]" to player
 						else:
 							send "%{_prefixO}% &7No town name found in this name. (maybe map name is incorrect?)" to player	
@@ -1463,7 +1463,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 							if arg 4 is set:
 								set {_Minimum} to checkFileSKY("Datas.Min-Players", "arenas/%arg 2%") parsed as number
 								set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%arg 2%") parsed as number
-								set {_Number} to "%arg 4%" parsed as number
+								set {_Number} to arg 4 parsed as number
 								if {_Number} is between 1 and 36:
 									if arg 3 is "min":
 										set {_Type} to "Min"
@@ -1482,7 +1482,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 									writeFileSKY("Datas.%{_Type}%-Players", "%{_Number}%", "arenas/%arg 2%")
 									set {_msg} to "%{SW::Messages::%{_lang}%::MinMax_%{_Type}%_Done}%"
 									replace all "{NUMBER}" with "%{_Number}%" in {_msg}
-									replace all "{ARENA}" with "%arg 2%" in {_msg}
+									replace all "{ARENA}" with arg 2 in {_msg}
 									send "%{_prefixO}% %{_msg}%" to player
 								else:
 									send "%{_prefixO}% %{SW::Messages::%{_lang}%::Number_Must_Between}%" to player	
@@ -1503,7 +1503,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 						if arg 3 is set:
 							if arg 3 is not "*":
 								if file "plugins/%{minigamesapi::game}%/maps/%arg 3%.yml" exists:
-									if checkFileSKY("Datas.Current-Map", "arenas/%arg 2%") is not "%arg 3%":
+									if checkFileSKY("Datas.Current-Map", "arenas/%arg 2%") is not arg 3:
 										wait 2 ticks
 										set {_arenas::*} to files in "plugins/%{minigamesapi::game}%/arenas"
 										remove "%arg 2%.yml" from {_arenas::*}
@@ -1512,29 +1512,29 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 												set {_file} to "%loop-value%"
 												replace all ".yml" with "" in {_file}
 												set {_map} to checkFileSKY("Datas.Current-Map", "arenas/%{_file}%")
-												"%arg 3%" is {_map}
+												arg 3 is {_map}
 												set {_msg} to {SW::Messages::%{_lang}%::Arena_Using}
 												replace all "{ARENA}" with "%{_file}%" in {_msg}
 												send "%{_prefixO}% %{_msg}%" to player
 												stop
 										set {_msg} to {SW::Messages::%{_lang}%::Arena_Map}
-										replace all "{ARENA}" with "%arg 2%" in {_msg}
-										replace all "{MAP}" with "%arg 3%" in {_msg}
+										replace all "{ARENA}" with arg 2 in {_msg}
+										replace all "{MAP}" with arg 3 in {_msg}
 										send "%{_prefixO}% %{_msg}%" to player												
-										debugArena("%arg 2%", "disable")			
+										debugArena(arg 2, "disable")			
 										writeFileSKY("Datas.Status", "4", "arenas/%arg 2%")	
-										writeFileSKY("Datas.Current-Map", "%arg 3%", "arenas/%arg 2%")		
+										writeFileSKY("Datas.Current-Map", arg 3, "arenas/%arg 2%")		
 									else:
 										send "%{_prefixO}% %{SW::Messages::%{_lang}%::Already_Arena_Map}%" to player
 								else:
 									send "%{_prefixO}% %{SW::Messages::%{_lang}%::No_Map}%" to player
 							else:
 								set {_msg} to {SW::Messages::%{_lang}%::Arena_Map_Removed}
-								replace all "{ARENA}" with "%arg 2%" in {_msg}
+								replace all "{ARENA}" with arg 2 in {_msg}
 								send "%{_prefixO}% %{_msg}%" to player		
 								writeFileSKY("Datas.Current-Map", "*", "arenas/%arg 2%")		
 								wait 3 ticks
-								debugArena("%arg 2%", "disable")
+								debugArena(arg 2, "disable")
 								writeFileSKY("Datas.Status", "4", "arenas/%arg 2%")									
 						else:
 							send "%{_prefixO}% %{SW::Messages::%{_lang}%::Enter_Map_Name}% %{SW::Messages::%{_lang}%::Usage::Map}%" to player
@@ -1550,7 +1550,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 					if file "plugins/%{minigamesapi::game}%/arenas/%arg 2%.yml" exists:
 						set {_Status} to checkFileSKY("Datas.Status", "arenas/%arg 2%")
 						if {_Status} is "0" or "1":
-							startGame("%arg 2%", "command")
+							startGame(arg 2, "command")
 						else:
 							set {_msg} to {SW::Messages::%{_lang}%::Error_Game_Started}
 							replace all "{STATUS}" with "%{SW::Messages::%{_lang}%::Game_Text_%{_Status}%}%" in {_msg}
@@ -1610,7 +1610,7 @@ on command:
 	send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Disabled_Command}%" to player
 	cancel event
 function xpAPI(Player: player, Win: boolean):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	set {_lang} to language of {_Player}
@@ -1807,7 +1807,7 @@ function winMatch(Arena: text):
 			replace all "{NUMBER}" with "%loop-index%" in {_msg}
 			replace all "{PLAYER}" with "%{_Player}%" in {_msg}
 			replace all "{KILLS}" with "%{_Kills::%loop-value%}%" in {_msg}
-			set {_UUID} to "%uuid of {_Player}%"
+			set {_UUID} to uuid of {_Player}
 			
 			JSONdegerEkle({_Player}, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Wins", 1)
 			

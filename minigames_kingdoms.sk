@@ -143,7 +143,7 @@ function broadcastServerKingdoms(variable: text, repVar: text, prefixt: boolean,
 			send "%{_prefix}% %{_msg}%" to {_lP}	
 
 function inventoryAPI(Player: player, no: number, more: boolean):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set level of {_Player} to 0
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")
@@ -327,7 +327,7 @@ function startGame(Arena: text, Type: text):
 		
 		loop size of {_TeleportList::*} times:
 			set {_RandomPlayer::%loop-number%} to "%random element out of {_TeleportList::*}%" parsed as player
-			set {_RandomUUID::%loop-number%} to "%uuid of {_RandomPlayer::%loop-number%}%"
+			set {_RandomUUID::%loop-number%} to uuid of {_RandomPlayer::%loop-number%}
 			set {_x} to checkFileSKY("Datas.Spawns.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
 			set {_y} to checkFileSKY("Datas.Spawns.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
 			set {_z} to checkFileSKY("Datas.Spawns.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
@@ -389,7 +389,7 @@ function startGame(Arena: text, Type: text):
 	sendMessageArena("%{_Arena}%", "Game_Finish_Time_NoKng", "*", true)	
 	debugArena("%{_Arena}%", "time")					
 function teleporterAPIKG(player: player, type: text, name: text):
-	set {_UUID} to "%uuid of {_player}%"
+	set {_UUID} to uuid of {_player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	set {_lang} to language of {_player}
@@ -451,7 +451,7 @@ function teleporterAPIKG(player: player, type: text, name: text):
 	else:
 		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Dont_Have_Kingdom}%" to {_player}	
 function menuEffect(player: player, main: text, name: text, type: text): 
-	set {_UUID} to "%uuid of {_player}%"
+	set {_UUID} to uuid of {_player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	set {_lang} to language of {_player}
@@ -480,7 +480,7 @@ function menuEffect(player: player, main: text, name: text, type: text):
 	else if {_type} is "2":
 		teleporterAPIKG({_player}, "%{_main}%", "%{_name}%")
 function listMines(player: player):
-	set {_UUID} to "%uuid of {_player}%"
+	set {_UUID} to uuid of {_player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	set {_lang} to language of {_player}
@@ -496,7 +496,7 @@ function listMines(player: player):
 	else:
 		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Dont_Have_Kingdom_ToDo}%" to {_player}		
 function listTowns(player: player):
-	set {_UUID} to "%uuid of {_player}%"
+	set {_UUID} to uuid of {_player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	set {_lang} to language of {_player}
@@ -544,7 +544,7 @@ function listTowns(player: player):
 	else:
 		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Dont_Have_Kingdom_ToDo}%" to {_player}
 function listKingdoms(player: player):
-	set {_UUID} to "%uuid of {_player}%"
+	set {_UUID} to uuid of {_player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	set {_lang} to language of {_player}

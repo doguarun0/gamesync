@@ -32,10 +32,10 @@ function upgradeAPI(Arena: text):
 		#create holo object "%{SW::Messages::Type_Diamond}%" with id "%{_Arena}%_Diamond-%loop-number%" at {_Location.Diamond::%loop-number%}
 		create a hologram display "%{SW::Messages::Temp_Holo_Lines_1}%" at {_Location.Diamond::%loop-number%} with id "%{_Arena}%_Diamond-%loop-number%"
 		#(add|set|change) line %integer% (at|from) hologram with id %string% (to|with) item %string%
-		add line 2 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_2}%
-		add line 3 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_3}%
-		add line 4 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_4}%
-		add line 5 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_5}%
+		add line 2 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_2}%"
+		add line 3 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_3}%"
+		add line 4 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_4}%"
+		add line 5 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_5}%"
 	loop size of {_tip.Emerald::*} times:
 		set {_x} to checkFileSKY("Datas.Emerald.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
 		set {_y} to checkFileSKY("Datas.Emerald.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
@@ -44,10 +44,10 @@ function upgradeAPI(Arena: text):
 		set {_Location.Emerald::%loop-number%} to location ({_x}, {_y}+4, {_z}) in world {_w}  
 		#create holo object "%{SW::Messages::Type_Emerald}%" with id "%{_Arena}%_Emerald-%loop-number%" at {_Location.Emerald::%loop-number%}
 		create a hologram display "%{SW::Messages::Temp_Holo_Lines_1}%" at {_Location.Emerald::%loop-number%} with id "%{_Arena}%_Emerald-%loop-number%"
-		add line 2 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_2}%
-		add line 3 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_3}%
-		add line 4 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_4}%
-		add line 5 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_5}%
+		add line 2 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_2}%"
+		add line 3 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_3}%"
+		add line 4 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_4}%"
+		add line 5 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_5}%"
 		
 	wait 3 ticks
 	set {_UpgradeSeconds} to checkFileSKY("Datas.Upgrade-Timer", "arenas/%{_Arena}%") parsed as number
@@ -221,7 +221,7 @@ function bedAPI(Arena: text):
 		#	delete holo object "%{_Arena}%_Emerald-%loop-number%"
 		delete hologram with id "%{_Arena}%_Emerald-%loop-number%"
 function inventoryAPI(Player: player, no: number):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set level of {_Player} to 0
 	set {_Arena} to checkFileSKY("Players.%{_UUID}%.Arena-Name", "playerdata")
 	set {_Team} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%")
@@ -278,7 +278,7 @@ function inventoryAPI(Player: player, no: number):
 		set slot 0 of {_Player}'s inventory to eye of ender named "%{SW::Messages::%{_lang}%::Features_FeatureItems_5_Name}%" with lore "%{SW::Messages::%{_lang}%::Features_FeatureItems_5_Lore}%"
 function scoreboardAPI(Player: player):
 	set {_lang} to language of {_Player}
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
 	set {_Mode} to checkFileSKY("Datas.Type", "arenas/%{_Arena}%")
@@ -516,7 +516,7 @@ function startGame(Arena: text, Type: text):
 		
 		loop size of {_TeleportList::*} times:
 			set {_RandomPlayer::%loop-number%} to "%random element out of {_TeleportList::*}%" parsed as player
-			set {_RandomUUID::%loop-number%} to "%uuid of {_RandomPlayer::%loop-number%}%"
+			set {_RandomUUID::%loop-number%} to uuid of {_RandomPlayer::%loop-number%}
 			set {_x} to checkFileSKY("Datas.Spawns.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
 			set {_y} to checkFileSKY("Datas.Spawns.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
 			set {_z} to checkFileSKY("Datas.Spawns.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
@@ -605,7 +605,7 @@ on death of player:
 	set {_TeamStatus} to checkFileSKY("Datas.Team-Status.%{_Team}%", "arenas/%{_Arena}%")
 	if {_TeamStatus} is not "*":
 		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Died}%" to victim	
-		veriCikarSKY("Datas.Players-List", "%uuid of victim%", "arenas/%{_Arena}%")
+		veriCikarSKY("Datas.Players-List", uuid of victim, "arenas/%{_Arena}%")
 		set {_PlayerList::*} to configuration section "Datas.Players-List" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 	else:
 		send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::You_Died_With_Bed}%" to victim	
@@ -647,7 +647,7 @@ on death of player:
 		#Recent Players
 		set {_RecentPlayers::*} to  configuration section "Datas.All-Joined" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
 		set {_rcp} to ""
-		remove "%uuid of victim%" from {_RecentPlayers::*}
+		remove uuid of victim from {_RecentPlayers::*}
 		loop {_RecentPlayers::*}:
 			clear {_plr}
 			set {_plr} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_Arena}%.yml"
@@ -765,7 +765,7 @@ on break:
 					{_Team::%loop-value%} is "%{_name}%":
 						set {_found} to true
 						set {_Player::%loop-value%} to checkFileSKY("Datas.Players-List.%loop-value%.Username", "arenas/%{_Arena}%") parsed as player
-						set {_uuid::%loop-value%} to "%uuid of {_Player::%loop-value%}%"
+						set {_uuid::%loop-value%} to uuid of {_Player::%loop-value%}
 						set {_lang.%loop-value%} to language of {_Player::%loop-value%}
 						set {_featureSaver} to checkFileSKY("Datas.Features.%{_name}%.2", "arenas/%{_Arena}%")
 						if {_featureSaver} is not "true":
@@ -906,7 +906,7 @@ function itemShopPriceChecker(Player: player, Type: number, Slot: number) :: boo
 	else:
 		return false	
 function itemShop(Player: player, Type: number):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
@@ -1013,7 +1013,7 @@ function itemShop(Player: player, Type: number):
 		add 1 to {_z}
 		add 1 to {_slot}
 function itemShopBuy(Player: player, Type: number, Slot: number, Control: number):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
@@ -1066,7 +1066,7 @@ function itemShopBuy(Player: player, Type: number, Slot: number, Control: number
 		playSoundSKY({_Player}, "NOTE_HARP", "NOTE_HARP", 1)
 		stop
 function quickBuyDefine(Player: player, Pos: number, QBType: number, QBSlot: number):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
@@ -1091,7 +1091,7 @@ function quickBuyDefine(Player: player, Pos: number, QBType: number, QBSlot: num
 		{_found} is false
 		writeFileSKY("Datas.Players-List.%{_UUID}%.Quick-Buy-Slot.%{_max}%", "%{_QBType}%,%{_QBSlot}%", "arenas/%{_Arena}%")
 function teleportDelayAPI(Player: player):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
@@ -1140,7 +1140,7 @@ function teleportDelayAPI(Player: player):
 	playSoundSKY({_Player}, "BLOCK_PISTON_EXTEND", "PISTON_EXTEND", 1)
 	stop
 function upgradeMenuBuy(Player: player, Type: number, Slot: number):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"
@@ -1212,7 +1212,7 @@ function upgradeMenuBuy(Player: player, Type: number, Slot: number):
 		play sound "NOTE_HARP" to {_Player} with volume 1 and pitch 1
 		stop
 function upgradeMenu(Player: player):
-	set {_UUID} to "%uuid of {_Player}%"
+	set {_UUID} to uuid of {_Player}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	{_Arena} is not "*"
 	checkFileSKY("Datas.Status", "arenas/%{_Arena}%") is "2"

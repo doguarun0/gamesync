@@ -10,7 +10,7 @@ on load:
 	send "%the last error%" to console
 function replaceMessage(player: player, type: text) :: text:
 	set {_def} to {_type}
-	set {_uuid} to "%uuid of {_player}%"
+	set {_uuid} to uuid of {_player}
 	replace all "{PLAYER}" with "%{_player}%" in {_def}
 	replace all "{UUID}" with "%{_uuid}%" in {_def}
 	return {_def}
@@ -19,7 +19,7 @@ effect refreshsqldata %string% with id %string%:
 		set {_tablo} to {MySQLAPI::%expression-2%::tablo}
 		set {_user} to {MySQLAPI::%expression-2%::user}
 		set {_p} to "%expression-1%" parsed as offline player
-		set {_uuid} to "%uuid of {_p}%"
+		set {_uuid} to uuid of {_p}
 		set {_read} to "SELECT * FROM %{_tablo}% WHERE %{_user}% = '%{_uuid}%'"
 		execute unsafe {_read} in {sql1} and store the result in {_output::*}
 		if {_output::%{_user}%::1} is set:
@@ -42,7 +42,7 @@ expression sql data %string% with id %string% [for type %-string%]:
 			set {_user} to {MySQLAPI::%expression-2%::user}
 			set {_type} to "%expression-3%"
 			set {_p} to "%expression-1%" parsed as offline player
-			set {_uuid} to "%uuid of {_p}%"
+			set {_uuid} to uuid of {_p}
 			set {_cmd} to "UPDATE `%{_tablo}%` SET `%{_type}%` = %{_type}% + %change value% WHERE `%{_tablo}%`.`%{_user}%` = '%{_uuid}%'"
 			execute unsafe {_cmd} in {sql1} 
 	remove:
@@ -53,7 +53,7 @@ expression sql data %string% with id %string% [for type %-string%]:
 			set {_user} to {MySQLAPI::%expression-2%::user}
 			set {_type} to "%expression-3%"
 			set {_p} to "%expression-1%" parsed as offline player
-			set {_uuid} to "%uuid of {_p}%"
+			set {_uuid} to uuid of {_p}
 			set {_cmd} to "UPDATE `%{_tablo}%` SET `%{_type}%` = %{_type}% - %change value% WHERE `%{_tablo}%`.`%{_user}%` = '%{_uuid}%'"
 			execute unsafe {_cmd} in {sql1} 
 			
@@ -62,7 +62,7 @@ expression sql data %string% with id %string% [for type %-string%]:
 		set {_user} to {MySQLAPI::%expression-2%::user}
 		set {_type} to "%expression-3%"
 		set {_p} to "%expression-1%" parsed as offline player
-		set {_uuid} to "%uuid of {_p}%"
+		set {_uuid} to uuid of {_p}
 		set {_cmd} to "DELETE FROM %{_tablo}% WHERE %{_user}% = '%{_uuid}%'"
 		execute unsafe {_cmd} in {sql1}
 	set:
@@ -73,7 +73,7 @@ expression sql data %string% with id %string% [for type %-string%]:
 			set {_user} to {MySQLAPI::%expression-2%::user}
 			set {_type} to "%expression-3%"
 			set {_p} to "%expression-1%" parsed as offline player
-			set {_uuid} to "%uuid of {_p}%"
+			set {_uuid} to uuid of {_p}
 			set {_cmd} to "UPDATE `%{_tablo}%` SET `%{_type}%` = '%change value%' WHERE `%{_tablo}%`.`%{_user}%` = '%{_uuid}%'"
 			execute unsafe {_cmd} in {sql1}
 effect savesql data id %string% with full name %string%:
@@ -82,7 +82,7 @@ effect savesql data id %string% with full name %string%:
 		set {_cmd} to "INSERT INTO `%{MySQLAPI::%expression-1%::tablo}%` %{_exp2}%"
 		execute unsafe {_cmd} in {sql1} 
 function degerOku(p: offline player, id: text, type: text, full: text, insert: boolean, default: text) :: text: 
-	set {_uuid} to "%uuid of {_p}%"
+	set {_uuid} to uuid of {_p}
 	set {_result} to a value "Datas.%{_id}%.%{_type}%" get of "plugins/Minecrowd/temp-datas/%{_p}%.yml"
 	"%{_result}%" is "<none>":
 		delete {_result}
