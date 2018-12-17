@@ -222,7 +222,7 @@ function LobbyScoreboardAPI(Player: player):
 	reset slots numbers between 1 and 9 of skoreboard {_Player}
 	
 	set {_ver} to {minigamesapi::game_version}
-	{minigamesapi::game_version} is not set:
+	"%{minigamesapi::game_version}%" is "<none>":
 		set {_ver} to "?"
 	
 	while {_Player} is online:

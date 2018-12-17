@@ -1,6 +1,6 @@
 ﻿on load:
 	set {minigamesapi::game} to "SKYWARS"
-	set {minigamesapi::game_version} to "a1710"
+	set {minigamesapi::game_version} to "a2710"
 	#
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"
@@ -18,7 +18,7 @@
 	set {SW::Tier_3_Chance} to 20
 	set {SW::Tier_4_Chance} to 10
 	set {SW::Empty_Slot_Chance} to 30
-	set {SW::Event-Timer} to 220
+	set {SW::Event-Timer} to 10
 	#
 function eventAPI(Arena: text):
 	set {_CurrentMap} to checkFileSKY("Datas.Current-Map", "arenas/%{_Arena}%")	
@@ -72,14 +72,18 @@ function eventAPI(Arena: text):
 					set {_Counter} to 0
 					sendMessageArena("%{_Arena}%", "Apo_Started", "*", false)
 					execute console command "/time set night %{_w}%"
-					loop blocks within {_N1} to {_N2}:
+					set {_random.integer2} to 1
+					set {_random.integer1} to random integer from 1 to 2
+					{_random.integer1} is 1:
+						set {_random.integer2} to 2
+					loop blocks within {_N%{_random.integer1}%} to {_N%{_random.integer2}%}:
 						type of loop-block is not air or chest or trapped chest
 						if "%type of loop-block%" contains "leave":
 							set block at loop-block to glowstone
 						else:
 							set block at loop-block to {_block.%random integer from 1 to 4%}
 						add 1 to {_Counter}
-						{_Counter} is 50:
+						{_Counter} is 70:
 							set {_Counter} to 0
 							wait 5 ticks
 					set {_Maximum} to checkFileSKY("Datas.Max-Players", "arenas/%{_Arena}%") parsed as number
@@ -192,6 +196,7 @@ function scoreboardAPI(Player: player):
 	set title of skoreboard {_Player} to "%{SW::SC_Header}%"
 	wait 1 ticks
 	reset slots numbers between 1 and 10 of skoreboard {_Player}
+	wait 10 ticks
 	
 	while {_Player} is online:
 		set {_control} to false

@@ -1,8 +1,8 @@
 ﻿on load:
-	#
+	# don't change
 	set {minigamesapi::game} to "BEDWARS"
 	set {minigamesapi::game_version} to "a/17.10"
-	#
+	# ----------------
 	set {SW::Prefix} to "&c&lMINECROWD &4➥&7"
 	set {SW::SC_Header} to "&c&lMINECROWD"
 	set {SW::Starting_Cooldown} to 10
@@ -29,14 +29,26 @@ function upgradeAPI(Arena: text):
 		set {_z} to checkFileSKY("Datas.Diamond.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
 		set {_w} to checkFileSKY("Datas.Diamond.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
 		set {_Location.Diamond::%loop-number%} to location ({_x}, {_y}+4, {_z}) in world {_w}  
-		create holo object "%{SW::Messages::Type_Diamond}%" with id "%{_Arena}%_Diamond-%loop-number%" at {_Location.Diamond::%loop-number%}
+		#create holo object "%{SW::Messages::Type_Diamond}%" with id "%{_Arena}%_Diamond-%loop-number%" at {_Location.Diamond::%loop-number%}
+		create a hologram display "%{SW::Messages::Temp_Holo_Lines_1}%" at {_Location.Diamond::%loop-number%} with id "%{_Arena}%_Diamond-%loop-number%"
+		#(add|set|change) line %integer% (at|from) hologram with id %string% (to|with) item %string%
+		add line 2 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_2}%
+		add line 3 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_3}%
+		add line 4 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_4}%
+		add line 5 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_5}%
 	loop size of {_tip.Emerald::*} times:
 		set {_x} to checkFileSKY("Datas.Emerald.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
 		set {_y} to checkFileSKY("Datas.Emerald.%loop-number%.y", "maps/%{_CurrentMap}%") parsed as number
 		set {_z} to checkFileSKY("Datas.Emerald.%loop-number%.z", "maps/%{_CurrentMap}%") parsed as number
 		set {_w} to checkFileSKY("Datas.Emerald.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
 		set {_Location.Emerald::%loop-number%} to location ({_x}, {_y}+4, {_z}) in world {_w}  
-		create holo object "%{SW::Messages::Type_Emerald}%" with id "%{_Arena}%_Emerald-%loop-number%" at {_Location.Emerald::%loop-number%}
+		#create holo object "%{SW::Messages::Type_Emerald}%" with id "%{_Arena}%_Emerald-%loop-number%" at {_Location.Emerald::%loop-number%}
+		create a hologram display "%{SW::Messages::Temp_Holo_Lines_1}%" at {_Location.Emerald::%loop-number%} with id "%{_Arena}%_Emerald-%loop-number%"
+		add line 2 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_2}%
+		add line 3 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_3}%
+		add line 4 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_4}%
+		add line 5 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_5}%
+		
 	wait 3 ticks
 	set {_UpgradeSeconds} to checkFileSKY("Datas.Upgrade-Timer", "arenas/%{_Arena}%") parsed as number
 	while 1 is 1:
@@ -49,11 +61,13 @@ function upgradeAPI(Arena: text):
 				add 1 to {_Tier}
 				if {_Tier} is 1 or 2 or 3:
 					loop size of {_tip.Diamond::*} times:	
-						holo object "%{_Arena}%_Diamond-%loop-number%" exists:
-							edit holo object "%{_Arena}%_Diamond-%loop-number%" line 4 to "%{SW::Messages::Tier_Text}%%{SW::Messages::Text_Roman_%{_Tier}%}%"	
+						#holo object "%{_Arena}%_Diamond-%loop-number%" exists:
+						#	edit holo object "%{_Arena}%_Diamond-%loop-number%" line 4 to "%{SW::Messages::Tier_Text}%%{SW::Messages::Text_Roman_%{_Tier}%}%"	
+						set line 4 from hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Tier_Text}%%{SW::Messages::Text_Roman_%{_Tier}%}%"
 					loop size of {_tip.Emerald::*} times:
-						holo object "%{_Arena}%_Emerald-%loop-number%" exists:
-							edit holo object "%{_Arena}%_Emerald-%loop-number%" line 4 to "%{SW::Messages::Tier_Text}%%{SW::Messages::Text_Roman_%{_Tier}%}%"	
+						#holo object "%{_Arena}%_Emerald-%loop-number%" exists:
+						#	edit holo object "%{_Arena}%_Emerald-%loop-number%" line 4 to "%{SW::Messages::Tier_Text}%%{SW::Messages::Text_Roman_%{_Tier}%}%"	
+						set line 4 from hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Tier_Text}%%{SW::Messages::Text_Roman_%{_Tier}%}%"
 				else if {_Tier} is 4:
 					loop size of {_Beds::*} times:
 						set {_x} to checkFileSKY("Datas.Bed.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
@@ -106,8 +120,9 @@ function dropMiddle(Arena: text, Type: text):
 				#else:
 				set {_utime} to "%{_UpgradeSeconds}%"
 				loop size of {_tip::*} times:
-					holo object "%{_Arena}%_%{_Type}%-%loop-number%" exists:
-						edit holo object "%{_Arena}%_%{_Type}%-%loop-number%" line 5 to "%{SW::Messages::Spawns_In}%%{_utime}%"		
+					#holo object "%{_Arena}%_%{_Type}%-%loop-number%" exists:
+					#	edit holo object "%{_Arena}%_%{_Type}%-%loop-number%" line 5 to "%{SW::Messages::Spawns_In}%%{_utime}%"		
+					set line 5 from hologram with id "%{_Arena}%_%{_Type}%-%loop-number%" to "%{SW::Messages::Spawns_In}%%{_utime}%"	
 			else:		
 				loop size of {_Spot::*} times:
 					set {_x} to checkFileSKY("Datas.%{_Type}%.%loop-number%.x", "maps/%{_CurrentMap}%") parsed as number
@@ -198,11 +213,13 @@ function bedAPI(Arena: text):
 	set {_tip.Diamond::*} to configuration section "Datas.Diamond" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
 	set {_tip.Emerald::*} to configuration section "Datas.Emerald" get of "plugins/%{minigamesapi::game}%/maps/%{_CurrentMap}%.yml"
 	loop size of {_tip.Diamond::*} times:
-		holo object "%{_Arena}%_Diamond-%loop-number%" exists:
-			delete holo object "%{_Arena}%_Diamond-%loop-number%"
+		#holo object "%{_Arena}%_Diamond-%loop-number%" exists:
+		#	delete holo object "%{_Arena}%_Diamond-%loop-number%"
+		delete hologram with id "%{_Arena}%_Diamond-%loop-number%"
 	loop size of {_tip.Emerald::*} times:
-		holo object "%{_Arena}%_Emerald-%loop-number%" exists:
-			delete holo object "%{_Arena}%_Emerald-%loop-number%"
+		#holo object "%{_Arena}%_Emerald-%loop-number%" exists:
+		#	delete holo object "%{_Arena}%_Emerald-%loop-number%"
+		delete hologram with id "%{_Arena}%_Emerald-%loop-number%"
 function inventoryAPI(Player: player, no: number):
 	set {_UUID} to "%uuid of {_Player}%"
 	set level of {_Player} to 0
@@ -1442,6 +1459,13 @@ on load:
 	set {SW::Messages::Spawns_In} to "&6⌛ = "
 	set {SW::Messages::Type_Emerald} to "ItemStack:EMERALD_BLOCK;;&f&m-----------&r;%{SW::Messages::Tier_Text}% I;%{SW::Messages::Spawns_In}%;&f&m-----------&r"
 	set {SW::Messages::Type_Diamond} to "ItemStack:DIAMOND_BLOCK;;&f&m-----------&r;%{SW::Messages::Tier_Text}% I;%{SW::Messages::Spawns_In}%;&f&m-----------&r"
+	#
+	set {SW::Messages::Temp_Holo_Lines_1} to " "
+	set {SW::Messages::Temp_Holo_Lines_2} to "&f&m-----------&r"
+	set {SW::Messages::Temp_Holo_Lines_3} to "%{SW::Messages::Tier_Text}% I"
+	set {SW::Messages::Temp_Holo_Lines_4} to "%{SW::Messages::Spawns_In}%"
+	set {SW::Messages::Temp_Holo_Lines_5} to "&f&m-----------&r"
+	#
 	set {SW::Game_Item_0} to player head with custom nbt "{display:{Name:""Lime green (32CD32)""},SkullOwner:{Id:""1275bae2-2ad3-447b-bf98-e74437907bfc"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjJkMTQ1YzkzZTVlYWM0OGE2NjFjNmYyN2ZkYWZmNTkyMmNmNDMzZGQ2MjdiZjIzZWVjMzc4Yjk5NTYxOTcifX19""}]}}}"
 	set {SW::Game_Item_1} to player head with custom nbt "{display:{Name:""Dark green (006400)""},SkullOwner:{Id:""c9d71cd8-69e6-47e0-8493-197df80d3a4f"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmM5ZTYwMWVkOTE5OGRiYjM0YzUxZGRmMzIzOTI5ZjAxYTVmOTU4YWIxMTEzM2UzZTA0MDdiNjk4MzkzYjNmIn19fQ==""}]}}}"
 	set {SW::Game_Item_2} to player head with custom nbt "{display:{Name:""Yellow (FFFF00)""},SkullOwner:{Id:""11d8b86f-8c1c-4a47-bc34-26dba4640a5c"",Properties:{textures:[{Value:""eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzY0MTY4MmY0MzYwNmM1YzlhZDI2YmM3ZWE4YTMwZWU0NzU0N2M5ZGZkM2M2Y2RhNDllMWMxYTI4MTZjZjBiYSJ9fX0=""}]}}}"
