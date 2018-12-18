@@ -143,12 +143,12 @@ function degerSil(p: offline player, id: text, type: text):
 	delete sql data "%{_p}%" with id "%{_id}%" for type {_type}
 	delete yaml value "Datas.%{_id}%.%{_type}%" from file "plugins/Minecrowd/temp-datas/%{_p}%.yml"
 function JSONdegerOku(Player: player, Engine: text, Column: text, Variable: text) :: text:
-	set {_var} to degerOku({_Player}, "%{_Engine}%", "%{_Column}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%", false, "*")
+	set {_var} to degerOku({_Player}, "%{_Engine}%", "%{_Column}%", %replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%, false, "*")
 	copy json "%{_var}%" to {_values::*}
 	set {_value} to {_values::%{_Variable}%}
 	return {_value}
 function JSONdegerEkle(Player: player, Engine: text, Column: text, Variable: text, Number: number):
-	set {_var} to degerOku({_Player}, "%{_Engine}%", "%{_Column}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%", false, "*")
+	set {_var} to degerOku({_Player}, "%{_Engine}%", "%{_Column}%", %replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%, false, "*")
 	copy json "%{_var}%" to {_values::*}
 	set {_oNum} to "%{_values::%{_Variable}%}%" parsed as integer
 	{_oNum} is not set:
@@ -156,13 +156,13 @@ function JSONdegerEkle(Player: player, Engine: text, Column: text, Variable: tex
 	add {_Number} to {_oNum}
 	set {_values::%{_Variable}%} to {_oNum}
 	set {_text} to {_values::*}'s serialized json form
-	degerAyarla({_Player}, "%{_Engine}%", "%{_Column}%", "%{_text}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%")
+	degerAyarla({_Player}, "%{_Engine}%", "%{_Column}%", "%{_text}%", %replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%)
 function JSONdegerAyarla(Player: player, Engine: text, Column: text, Variable: text, No: text):
-	set {_var} to degerOku({_Player}, "%{_Engine}%", "%{_Column}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%", false, "*")
+	set {_var} to degerOku({_Player}, "%{_Engine}%", "%{_Column}%", %replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%, false, "*")
 	copy json "%{_var}%" to {_values::*}
 	set {_values::%{_Variable}%} to {_No}
 	set {_text} to {_values::*}'s serialized json form
-	degerAyarla({_Player}, "%{_Engine}%", "%{_Column}%", "%{_text}%", "%replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%")
+	degerAyarla({_Player}, "%{_Engine}%", "%{_Column}%", "%{_text}%", %replaceMessage({_Player}, {MySQLAPI::%{_Engine}%::default})%)
 on join:
 	refreshsqldata "%player%" with id "default"
 on quit:

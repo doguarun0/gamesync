@@ -100,7 +100,7 @@ function getPlayersListPartiesSKY(player: offline player, arena: text) :: text:
 	replace all " and " with "-" in {_text}
 	return {_text}
 function remPlayersListPartiesSKY(party: offline player, player: offline player, arena: text):
-	set {_UUID} to "%uuid of {_party}%"
+	set {_UUID} to uuid of {_party}
 	set {_string} to a value "Datas.Players-List.%{_UUID}%.Players" get of "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml"
 	wait 1 tick
 	if {_string} is "*":
@@ -132,7 +132,7 @@ function removePartySKY(p: offline player, arena: text):
 			loop {_players::*}:
 				clear {_partyplayer}
 				set {_partyplayer} to "%loop-value%" parsed as offline player
-				set {_upp} to "%uuid of {_partyplayer}%"
+				set {_upp} to uuid of {_partyplayer}
 				delete yaml value "Datas.Players-List.%{_upp}%.HasParty" from file "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml"
 				delete yaml value "Datas.Players-List.%{_upp}%.Players" from file "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml"
 				wait 1 ticks
@@ -141,7 +141,7 @@ function removePartySKY(p: offline player, arena: text):
 	delete yaml value "Datas.Players-List.%{_uuid}%.HasParty" from file "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml"
 	delete yaml value "Datas.Players-List.%{_uuid}%.Players" from file "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml"
 function addPlayersListPartiesSKY(party: offline player, player: offline player, arena: text):
-	set {_UUID} to "%uuid of {_party}%"
+	set {_UUID} to uuid of {_party}
 	wait 1 ticks
 	set {_string} to a value "Datas.Players-List.%{_UUID}%.Players" get of "plugins/%{minigamesapi::game}%/arenas/%{_arena}%.yml"
 	if {_string} is "*":
@@ -1046,7 +1046,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 									send ""
 									loop 3 times:
 										set {_msg} to {SW::Messages::%{_lang}%::Pos_Tutorial_%loop-number%}
-										replace all "{WAND}" with "%uncolored {SW::Messages::%{_lang}%::Item_Wand}%" in {_msg}
+										replace all "{WAND}" with uncolored {SW::Messages::%{_lang}%::Item_Wand} in {_msg}
 										send "%{_msg}%"
 									send ""					
 									stop
@@ -1332,7 +1332,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 								send ""
 								loop 3 times:
 									set {_msg} to {SW::Messages::%{_lang}%::Pos_Tutorial_%loop-number%}
-									replace all "{WAND}" with "%uncolored {SW::Messages::%{_lang}%::Item_Wand}%" in {_msg}
+									replace all "{WAND}" with uncolored {SW::Messages::%{_lang}%::Item_Wand} in {_msg}
 									send "%{_msg}%"
 								send ""					
 								stop
@@ -1380,7 +1380,7 @@ command /minigamesapi [<text>] [<text>] [<text>] [<text>]:
 								send ""
 								loop 3 times:
 									set {_msg} to {SW::Messages::%{_lang}%::Pos_Tutorial_%loop-number%}
-									replace all "{WAND}" with "%uncolored {SW::Messages::%{_lang}%::Item_Wand}%" in {_msg}
+									replace all "{WAND}" with uncolored {SW::Messages::%{_lang}%::Item_Wand} in {_msg}
 									send "%{_msg}%"
 								send ""					
 								stop
@@ -1667,12 +1667,12 @@ function xpAPI(Player: player, Win: boolean):
 	set {_addMainEXP} to rounded down {_totalEXP} / {SW::EXP::Crowd_EXP_Bol}
 		
 		
-	set {_level} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%", true, "1") parsed as number
-	set {_exp} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%", true, "0") parsed as number
-	degerEkle({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", {_totalEXP}, "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
-	set {_mainlevel} to degerOku({_Player}, "leveling", "main_level", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%", true, "1") parsed as number
-	set {_mainexp} to degerOku({_Player}, "leveling", "main_exp", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%", true, "0") parsed as number
-	degerEkle({_Player}, "leveling", "main_exp", {_addMainEXP}, "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
+	set {_level} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", replaceMessage({_Player}, {MySQLAPI::leveling::default}), true, "1") parsed as number
+	set {_exp} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", replaceMessage({_Player}, {MySQLAPI::leveling::default}), true, "0") parsed as number
+	degerEkle({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", {_totalEXP}, replaceMessage({_Player}, {MySQLAPI::leveling::default}))
+	set {_mainlevel} to degerOku({_Player}, "leveling", "main_level", replaceMessage({_Player}, {MySQLAPI::leveling::default}), true, "1") parsed as number
+	set {_mainexp} to degerOku({_Player}, "leveling", "main_exp", replaceMessage({_Player}, {MySQLAPI::leveling::default}), true, "0") parsed as number
+	degerEkle({_Player}, "leveling", "main_exp", {_addMainEXP}, replaceMessage({_Player}, {MySQLAPI::leveling::default}))
 	
 	wait 1 tick
 	
@@ -1690,8 +1690,8 @@ function xpAPI(Player: player, Win: boolean):
 	set {_normalCol} to "&8"
 	{_exp} is greater or equal to {_formula}: 
 		set {_rec} to {_exp}-{_formula}
-		degerEkle({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", 1, "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
-		degerAyarla({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", "%{_rec}%", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
+		degerEkle({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", 1, replaceMessage({_Player}, {MySQLAPI::leveling::default}))
+		degerAyarla({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_exp", "%{_rec}%", replaceMessage({_Player}, {MySQLAPI::leveling::default}))
 		set {_msg} to {SW::Messages::%{_lang}%::Level_Up_Header}
 		replace all "{LEVEL}" with "%{_level}+1%" in {_msg}
 		set {_1} to a new text component with "%{_msg}%"  
@@ -1701,8 +1701,8 @@ function xpAPI(Player: player, Win: boolean):
 		set {_normalCol} to "&0"
 	{_mainexp} is greater or equal to {_formula}: 	
 		set {_rec} to {_mainexp}-{_formula}
-		degerEkle({_Player}, "leveling", "main_level", 1, "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
-		degerAyarla({_Player}, "leveling", "main_exp", "%{_rec}%", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%")
+		degerEkle({_Player}, "leveling", "main_level", 1, replaceMessage({_Player}, {MySQLAPI::leveling::default}))
+		degerAyarla({_Player}, "leveling", "main_exp", "%{_rec}%", replaceMessage({_Player}, {MySQLAPI::leveling::default}))
 	
 		
 	if {_exp} is between 0 and 100000:
@@ -1737,10 +1737,10 @@ function xpAPI(Player: player, Win: boolean):
 	set {_2} to a new text component with "%{_prefix}%%{_lore}% %{_typeN}%"  
 	add hover event with action SHOW_TEXT with text "%{_1lore}%" to text component {_2}
 	add {_2} to {_components::*}
-	add text component coloured "%nl%" to {_components::*}
+	add text component coloured nl to {_components::*}
 	add text component coloured "" to {_components::*}
 	
-	add text component coloured "%nl%" to {_components::*}
+	add text component coloured nl to {_components::*}
 	loop 5 times:
 		{SW::EXP::%{minigamesapi::game}%_Objectives} contains "-%loop-number%-"
 		add text component coloured "&0%{SW::Messages::%{_lang}%::Objective_Label_%loop-number%}% &2+%{_exp.obj.%loop-number%}% EXP%nl%" to {_components::*}
@@ -1753,7 +1753,7 @@ function xpAPI(Player: player, Win: boolean):
 	replace all "{TOTAL}" with "%{_totalEXP}%" in {_msg}
 	
 	set {_res} to a new text component with "%{_msg}%"  
-	add text component coloured "%nl%" to {_components::*}
+	add text component coloured nl to {_components::*}
 	add hover event with action SHOW_TEXT with text "%{SW::Messages::%{_lang}%::Leveling_Total_Text}%" to text component {_res}
 	add {_res} to {_components::*}
 	
@@ -1765,7 +1765,7 @@ function xpAPI(Player: player, Win: boolean):
 	replace all "{LEVEL}" with "%{_mainlevel}%" in {_msg2}
 	replace all "{PROGRESS}" with "%{_r}%" in {_msg2}
 	set {_res} to a new text component with "%{_msg}%"  
-	add text component coloured "%nl%" to {_components::*}
+	add text component coloured nl to {_components::*}
 	add hover event with action SHOW_TEXT with text "%{_msg2}%" to text component {_res}
 	add {_res} to {_components::*}
 	add text component {_components::*} to book {_book}
@@ -1804,7 +1804,7 @@ function winMatch(Arena: text):
 			delete {_Player}
 			set {_Player} to "%loop-value%" parsed as offline player
 			set {_msg} to {SW::Messages::%{_lang}%::PartyWin_List}
-			replace all "{NUMBER}" with "%loop-index%" in {_msg}
+			replace all "{NUMBER}" with loop-index in {_msg}
 			replace all "{PLAYER}" with "%{_Player}%" in {_msg}
 			replace all "{KILLS}" with "%{_Kills::%loop-value%}%" in {_msg}
 			set {_UUID} to uuid of {_Player}
@@ -1835,7 +1835,7 @@ function winMatch(Arena: text):
 		JSONdegerEkle({_Player}, "minigamesapi", "%{minigamesapi::shortnamegame}%_info", "Played", 1)
 	writeFileSKY("Datas.Status", "0", "arenas/%{_Arena}%")	
 function leaveGame(PlayerName: player, boolean: boolean):
-	set {_UUID} to "%uuid of {_PlayerName}%"
+	set {_UUID} to uuid of {_PlayerName}
 	set {_lang} to language of {_PlayerName}
 	set {_Arena} to checkFileSKY("Players.Arena-Name", "playerdata/%{_UUID}%")
 	if {_Arena} is not "*":						
@@ -1884,7 +1884,7 @@ function leaveGame(PlayerName: player, boolean: boolean):
 			send "%{SW::Prefix}% %{SW::Messages::%{_lang}%::Arent_Ingame}%" to {_PlayerName}
 function joinGame(PlayerName: player, BungeeArena: text):
 	{_PlayerName} is online
-	set {_UUID} to "%uuid of {_PlayerName}%"
+	set {_UUID} to uuid of {_PlayerName}
 	set {_lang} to language of {_PlayerName}
 	set {_Bungee} to {SW::Bungee_Mode}
 	if {_Bungee} is "true":
@@ -1914,7 +1914,7 @@ function joinGame(PlayerName: player, BungeeArena: text):
 						delete {_pplayers::*}
 						set {_confm} to false
 						set {_lv} to "%loop-value%" parsed as offline player
-						set {_uuidlv} to "%uuid of {_lv}%"
+						set {_uuidlv} to uuid of {_lv}
 						set {_sqplv} to checkFileSKY("Datas.Players-List.%{_uuidlv}%.HasParty", "arenas/%{_BungeeArena}%") parsed as offline player
 						{_sqplv} is not set:
 							set {_sqplv} to "*"
@@ -1985,7 +1985,7 @@ function joinGame(PlayerName: player, BungeeArena: text):
 					else:
 						loop {_PlayerList::*}:
 							set {_lvPlayer} to a value "Datas.Players-List.%loop-value%.Username" get of "plugins/%{minigamesapi::game}%/arenas/%{_BungeeArena}%.yml" parsed as player
-							set {_lvUUID} to "%uuid of {_lvPlayer}%"
+							set {_lvUUID} to uuid of {_lvPlayer}
 							set {_start} to false
 							set {_party} to checkFileSKY("Datas.Players-List.%{_lvUUID}%.HasParty", "arenas/%{_BungeeArena}%")
 							{_default} is not set:

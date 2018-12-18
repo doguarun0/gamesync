@@ -30,7 +30,7 @@ function upgradeAPI(Arena: text):
 		set {_w} to checkFileSKY("Datas.Diamond.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
 		set {_Location.Diamond::%loop-number%} to location ({_x}, {_y}+4, {_z}) in world {_w}  
 		#create holo object "%{SW::Messages::Type_Diamond}%" with id "%{_Arena}%_Diamond-%loop-number%" at {_Location.Diamond::%loop-number%}
-		create a hologram display "%{SW::Messages::Temp_Holo_Lines_1}%" at {_Location.Diamond::%loop-number%} with id "%{_Arena}%_Diamond-%loop-number%"
+		create a new hologram display "%{SW::Messages::Temp_Holo_Lines_1}%" at {_Location.Diamond::%loop-number%} with id "%{_Arena}%_Diamond-%loop-number%"
 		#(add|set|change) line %integer% (at|from) hologram with id %string% (to|with) item %string%
 		add line 2 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_2}%"
 		add line 3 at hologram with id "%{_Arena}%_Diamond-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_3}%"
@@ -43,7 +43,7 @@ function upgradeAPI(Arena: text):
 		set {_w} to checkFileSKY("Datas.Emerald.%loop-number%.world", "maps/%{_CurrentMap}%") parsed as world
 		set {_Location.Emerald::%loop-number%} to location ({_x}, {_y}+4, {_z}) in world {_w}  
 		#create holo object "%{SW::Messages::Type_Emerald}%" with id "%{_Arena}%_Emerald-%loop-number%" at {_Location.Emerald::%loop-number%}
-		create a hologram display "%{SW::Messages::Temp_Holo_Lines_1}%" at {_Location.Emerald::%loop-number%} with id "%{_Arena}%_Emerald-%loop-number%"
+		create a new hologram display "%{SW::Messages::Temp_Holo_Lines_1}%" at {_Location.Emerald::%loop-number%} with id "%{_Arena}%_Emerald-%loop-number%"
 		add line 2 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_2}%"
 		add line 3 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_3}%"
 		add line 4 at hologram with id "%{_Arena}%_Emerald-%loop-number%" to "%{SW::Messages::Temp_Holo_Lines_4}%"
@@ -426,7 +426,7 @@ function debugArena(Arena: text, Type: text):
 			delete {_Player}
 			set {_Player} to "%loop-value%" parsed as player
 			add {_Player} to {_BungeeList::*}
-			set {_UUID} to "%loop-index%"
+			set {_UUID} to loop-index
 			if {_Bungee} is not "true":
 				clear {_Player}'s inventory
 				wait 3 ticks
@@ -545,7 +545,7 @@ function startGame(Arena: text, Type: text):
 	loop {_Player::*}:
 		clear {_Player}
 		set {_Player} to "%loop-value%" parsed as player
-		set {_UUID} to "%loop-index%"
+		set {_UUID} to loop-index
 		set {_lang} to language of {_Player}
 		set {_no} to checkFileSKY("Datas.Players-List.%{_UUID}%.Team", "arenas/%{_Arena}%") parsed as number
 		playSoundSKY({_player}, "NOTE_PLING", "NOTE_PLING", 1)
@@ -939,7 +939,7 @@ function itemShop(Player: player, Type: number):
 		
 
 	if {_Type} is 0:
-		set {_level} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%", true, "1") parsed as number
+		set {_level} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", replaceMessage({_Player}, {MySQLAPI::leveling::default}), true, "1") parsed as number
 		set {_loopTimes} to 14
 		set {_z} to 28
 	else:
@@ -1075,7 +1075,7 @@ function quickBuyDefine(Player: player, Pos: number, QBType: number, QBSlot: num
 	if {_QBType} is 0:
 		writeFileSKY("Datas.Players-List.%{_UUID}%.Quick-Buy-Slot.%{_Pos}%", "*", "arenas/%{_Arena}%")
 	else:
-		set {_level} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", "%replaceMessage({_Player}, {MySQLAPI::leveling::default})%", true, "1") parsed as number
+		set {_level} to degerOku({_Player}, "leveling", "%{minigamesapi::shortnamegame}%_level", replaceMessage({_Player}, {MySQLAPI::leveling::default}), true, "1") parsed as number
 		set {_calc} to rounded down {_level}/5
 		set {_max} to 1
 		{_calc} is greater than 1:

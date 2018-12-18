@@ -11,7 +11,7 @@ on join:
 	refreshsqldata "%player%" with id "parties"
 function getVariableSQL(p: offline player, variableName: text) :: text:
 	#
-	set {_result} to degerOku({_p}, "parties", "%{_variableName}%", "%replaceMessage({_p}, {MySQLAPI::parties::default})%", true, "NOVALUE") 
+	set {_result} to degerOku({_p}, "parties", "%{_variableName}%", replaceMessage({_p}, {MySQLAPI::parties::default}), true, "NOVALUE") 
 	set {_res} to "*"
 	"%{_result}%" is "<none>":
 		delete {_result}
@@ -27,7 +27,7 @@ function getPlayersListParties(player: offline player, type: text) :: text:
 		set {_variableName} to "Players"
 	#
 	
-	set {_result} to degerOku({_player}, "parties", "%{_variableName}%", "%replaceMessage({_player}, {MySQLAPI::parties::default})%", true, "NOVALUE") 
+	set {_result} to degerOku({_player}, "parties", "%{_variableName}%", replaceMessage({_player}, {MySQLAPI::parties::default}), true, "NOVALUE") 
 	"%{_result}%" is "<none>":
 		delete {_result}
 	set {_res} to "*;"
@@ -40,7 +40,7 @@ function getPlayersListParties(player: offline player, type: text) :: text:
 	replace all " and " with "-" in {_text}
 	return {_text}
 function saveRecentPlayers(p: offline player, text: text):
-	degerAyarla({_p}, "parties", "LastTeamMates", "%{_text}%", "%replaceMessage({_p}, {MySQLAPI::parties::default})%")
+	degerAyarla({_p}, "parties", "LastTeamMates", "%{_text}%", replaceMessage({_p}, {MySQLAPI::parties::default}))
 expression language of %player%:
 	get:
 		set {_p} to expression-1
