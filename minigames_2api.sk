@@ -1659,7 +1659,7 @@ function xpAPI(Player: player, Win: boolean):
 	set {_timeExp} to {_timeExp1}+{SW::EXP::Base_XP_Win_%{_Win}%}
 	add {_timeExp} to {_totalEXP}	
 	set {_multi} to 1
-	set {_rutbe} to degerOku({_Player}, "default", "rank", "%replaceMessage({_Player}, {MySQLAPI::default::default})%", false, "default") to all lower case
+	set {_rutbe} to degerOku({_Player}, "default", "rank", replaceMessage({_Player}, {MySQLAPI::default::default}), false, "default") to all lower case
 	{_rutbe} is "vip" or "elite" or "hero": 
 		set {_totalEXP} to {_totalEXP}*{SW::EXP::Multiplier_%{_rutbe}%}
 		set {_multi} to {SW::EXP::Multiplier_%{_rutbe}%}
